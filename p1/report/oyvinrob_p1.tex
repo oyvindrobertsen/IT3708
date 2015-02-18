@@ -1,0 +1,233 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Journal Article
+% LaTeX Template
+% Version 1.3 (9/9/13)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[twoside]{article}
+
+\usepackage{lipsum} % Package to generate dummy text throughout this template
+
+\usepackage[sc]{mathpazo} % Use the Palatino font
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[utf8]{inputenc}
+\linespread{1.05} % Line spacing - Palatino needs more space between lines
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+\usepackage{amsmath}
+\usepackage{listings}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true
+}
+
+%\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
+\usepackage[margin={1cm,2cm}]{geometry}
+\setlength{\columnsep}{1cm}
+\usepackage{multicol} % Used for the two-column layout of the document
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{float} % Required for tables and figures in the multi-column environment - they need to be placed in specific locations with the [H] (e.g. \begin{table}[H])
+\usepackage{hyperref} % For hyperlinks in the PDF
+\usepackage{multirow}
+
+\usepackage{syntax}
+\setlength{\grammarparsep}{5pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{6em} % increase separation between LHS/RHS 
+
+\usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
+\usepackage{paralist} % Used for the compactitem environment which makes bullet points with less space between them
+
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata, shapes, positioning, calc}
+
+\newcommand{\rparen}{)}
+
+\usepackage{titlesec} % Allows customization of titles
+\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+%\renewcommand{\thesubsection}{\thesection\hspace{1mm}\alph{subsection}}
+\titleformat{\section}[block]{\large\scshape\centering}{\thesection}{1em}{} % Change the look of the section titles
+\titleformat{\subsection}[block]{\large}{\thesubsection}{1em}{} % Change the look of the section titles
+
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{IT3708 Sub-symbolic AI Methods $\bullet$ Project 1 $\bullet$ \date{\today}} % Custom header text
+\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{Flocking and Avoidance With Boids - Project Report}} % Article title
+
+\author{
+    \large
+    \textsc{Øyvind Robertsen} \\ % Your name
+    \normalsize Norwegian University of Science \& Technology \\ % Your institution
+    \normalsize \href{mailto:oyvinrob@stud.ntnu.no}{oyvinrob@stud.ntnu.no} % Your email address
+    \vspace{-5mm}
+}
+\date{}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Insert title
+
+\thispagestyle{fancy} % All pages have headers and footers
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+\begin{abstract}
+
+\noindent This report describes a solution to Project 1 of IT3708, NTNU. 
+The purpose of this project is to implement flocking behaviour with boids that avoid obstacles and flee from predators.
+Flocking behaviour is an example of swarm intelligence, which is the collective behaviour of decentralized, self-organized systems.
+Another term often used to describe the behaviour of this type of system is emergence.
+Through simple rules describing a local intelligence for each of the boids, a seemingly global intelligence emerges.
+
+
+\end{abstract}
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\begin{multicols}{2} % Two-column layout throughout the main article text
+
+    \section{Implementation}
+
+    I chose to implement this project using the Python programming language~\cite{python}, utilizing the PyGame library~\cite{pygame} for graphics. 
+    I had no experience with PyGame prior to this project, so I have no clever reasoning for why I chose that specific library, other than wanting to know how suitable it is for this kind of task.
+    PyGame has decent documentation, and is very easy to get to grips with. 
+    The graphics side/main loop of my implementation can be summarized in the Python-like pseudocode in listing \ref{lst:pygame-example}
+
+    \begin{lstlisting}[language=Python, caption=Minimal viable PyGame example, label={lst:pygame-example}]
+    pygame.init()
+    size = (1200, 800)
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("Boids are cool")
+    while True:
+        for event in pygame.event.get():
+            Process user input events
+        1. Perform a single simulation step
+        2. Draw to the screen
+    \end{lstlisting}
+
+    The remaining ~250 lines of code in my implementation are all more or less strictly related to modeling and actually simulating the boids.
+    Boids and their behaviour are encapsulated in a class, of which my predator class is a subclass.
+    Notable properties of the boid class are velocity and position.
+    A collection of boids is also encapsulated in a Flock class, which provides some convenience in regards to working with all boids currently being simulated.
+    The Flock class has two important methods, \texttt{draw} and \texttt{update}.
+    The \texttt{draw}-method calls the \texttt{draw}-method of each boid in the flock, causing each boid to be drawn at its current position on the screen.
+    Similarily, the \texttt{update}-method of the Flock class gathers information necessary for updating a single boid, such as detecting other boids within a given radius, nearby predators and wether or not any given boid is heading straight towards an obstacle.
+    The \texttt{update}-method of a single boid then updates its velocity using the information regarding neighbors, obstacles and predators in combination with three simple rules; separation, alignment and cohesion.
+    Using the updated velocity, the boids position is updated.
+    Step 1 in the pseudocode in listing \ref{lst:pygame-example} is simply calling the \texttt{update}-methods of the instantiated flock and each predator.
+    Subsequently, step 2 is calling the \texttt{draw}-methods of everything we want to draw, boids, predators and obstacles.
+    Obstacles are modeled as a separate class.
+    All interactivity with the simulation is implemented as hotkeys.
+
+    \subsection{Separation force}
+
+    This force is calculated by adding the negatives of the vector between the boid and each neighboring boid together, each vector scaled by the distance between the two boids. 
+    Thus, the boids closest to eachother influence the resulting forcevector the greatest.
+    If the two boids are in the same position, the resulting force is the negative of the velocity-vector of the other boid.
+
+    \subsection{Alignment force}
+
+    A boid will steer towards the average heading of other boids close to it.
+    This is computed by averaging the velocity vectors of the neighboring boids.
+
+    \subsection{Cohesion force}
+
+    A boid will steer towards the average position of other boids close to it.
+    Similar to the alignment force, cohesion is calculated by averaging the positions of the neighboring boids.
+
+    \subsection{Avoiding obstacles}
+
+    In keeping with the other rather simple rules the boid follows, I tried to make obstacle avoidance as simple as possible.
+    The boid will steer to avoid the obstacle if it notices that it is currently heading towards one.
+    To avoid it, a heavily weighted force perpendicular to the velocity of the boid is added.
+
+    \subsection{Fleeing from predators}
+
+    To implement the desired behaviour for fleeing from a predator, a heavily weighted separation force is added to the velocity of the boid.
+    
+
+    \section{Emergent behaviour}
+
+    What follows is a description and explanation of the behaviour emerging as a result of distinctly varying the weights of the three forces acting on every boid.
+
+    \subsection{Scenario 1 - Low Separation and Alignment, High Cohesion}
+
+    Specific parameters: Separation - 10, Alignment - 10, Cohesion - 90
+
+    Under these parameters, the boids very quickly gather extremely tightly together, as the separation force is negligible relative to the cohesion. 
+    One might still characterize their grouping as emergent flocking behaviour, but it is, as one would expect, lacking two out the three behavioural traits.
+
+    \subsection{Scenario 2 - Low Separation and Cohesion, High Alignment}
+
+    Specific parameters: Separation - 10, Alignment - 90, Cohesion - 10
+
+    The boids flock together, with very little distance between boids, but in this case, they form longer lines instead of blobs, as in scenario 1. 
+    This is consistent with how much they prioritize going in the same direction over staying close together.
+
+    \subsection{Scenario 3 - Low Alignment and Cohesion, High Separation}
+
+    Specific parameters: Separation - 90, Alignment - 10, Cohesion - 10
+    
+    The boids form large flocks and remain fairly equidistant to one another, but the flocks are prone to splitting up, seeing as cohesion and alignment is low. 
+    That is, for a boid, the desire to remain equidistant outweighs the desire to go in the same direction as the or stay close to the majority of its neighbors.
+
+    \subsection{Scenario 4 - Low Separation, High Alignment and Cohesion}
+
+    Specific parameters: Separation - 10, Alignment - 90, Cohesion - 90
+
+    As in scenario 1, the boids form blobs that grow progressively as they meet other blobs. 
+    Differing from scenario 1, is that the blob, due to higher weighting of alignment, will travel along a straighter course, as long as there are no other blobs in the vicinity.
+
+    \subsection{Scenario 5 - Low Alignment, High Separation and Cohesion}
+
+    Specific parameters: Separation - 90, Alignment - 10, Cohesion - 90
+
+    The boids form flocks which in total move towards other flocks to satisfy the desire for cohesion, but each boid in a flock is very jittery, as it struggles to satisfy the opposing goals of staying separate while also staying together withouth the force of aligning towards the average heading to even things out.
+
+    \subsection{Scenario 6 - Low Cohesion, High Separation and Alignment}
+
+    Specific parameters: Separation - 90, Alignment - 90, Cohesion - 10
+
+    Large flocks of largely equidistant boids form, but since there desire to stay together is underprioritized, large portions of a flock may veer away from the majority, if that satisfies the desire for separation.
+    After an initial period of grouping, all boids more or less moved in the same direction, as is to be expected with a high desire for alignment.
+
+
+\end{multicols}
+
+\bibliography{references}
+\bibliographystyle{plain}
+
+\end{document}
