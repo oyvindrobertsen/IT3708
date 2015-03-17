@@ -1,0 +1,11 @@
+*.pdf
+*.ps
+*.dvi
+*.log
+*.bbl
+*.blg
+*.aux
+*.out
+
+env/
+*.pyc
