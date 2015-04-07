@@ -1,5 +1,7 @@
 from __future__ import print_function, division
-from random import random as r, randint, choice
+from random import random as r, choice
+
+from utils import tuple_add
 
 
 NORTH = 'N'
@@ -7,21 +9,64 @@ WEST = 'W'
 SOUTH = 'S'
 EAST = 'E'
 AGENT_DIRECTIONS = (NORTH, WEST, SOUTH, EAST)
+DELTAS = {
+    NORTH: (-1, 0),
+    WEST: (0, -1),
+    SOUTH: (1, 0),
+    EAST: (0, 1)
+}
 
 FOOD = 'F'
 POISON = 'P'
 EMPTY = ' '
 
 
-def gen_flatland(w, h, f, p):
-    gen_tile = lambda: FOOD if r() < f else POISON if r() < p else EMPTY
+class FlatlandProblem:
+    def __init__(self, w, h, f, p):
+        self.width = w
+        self.height = h
+        self.f = f
+        self.p = p
 
-    grid = [[gen_tile() for _ in xrange(w)] for _ in xrange(h)]
+        self.grid = [[self.gen_tile() for x in xrange(w)] for y in xrange(h)]
 
-    while True:
-        x, y = randint(0, w - 1), randint(0, h - 1)
-        if grid[y][x] == EMPTY:
-            grid[y][x] = choice(AGENT_DIRECTIONS)
-            break
+        is_empty = lambda pos: self.get_tile(*pos) == EMPTY
+        open_tiles = filter(is_empty, ((x, y) for x in xrange(w) for y in xrange(h)))
 
-    return grid
+        self.agent_x, self.agent_y = choice(open_tiles)
+        self.agent_heading = choice(AGENT_DIRECTIONS)
+
+    def gen_tile(self):
+        return FOOD if r() < self.f else POISON if r() < self.p else EMPTY
+
+    def get_tile(self, x, y):
+        return self.grid[y][x]
+
+    @property
+    def agent_position(self):
+        return self.agent_x, self.agent_y
+
+    def eat_food_handler(self):
+        pass  # TODO
+
+    def eat_poison_handler(self):
+        pass  # TODO
+
+    def agent_forward(self):
+        self.agent_x, self.agent_y = tuple_add(self.agent_position, DELTAS[self.agent_heading])
+
+        self.agent_x %= self.width
+        self.agent_y %= self.height
+
+        if self.get_tile(self.agent_x, self.agent_y) == FOOD:
+            self.eat_food_handler()
+        elif self.get_tile(self.agent_x, self.agent_y) == POISON:
+            self.eat_poison_handler()
+
+        self.grid[self.agent_y][self.agent_x] = EMPTY
+
+    def agent_turn_left(self):
+        self.agent_heading = AGENT_DIRECTIONS[AGENT_DIRECTIONS.index(self.agent_heading) - 1]
+
+    def agent_turn_right(self):
+        self.agent_heading = AGENT_DIRECTIONS[(AGENT_DIRECTIONS.index(self.agent_heading) + 1) % len(AGENT_DIRECTIONS)]
