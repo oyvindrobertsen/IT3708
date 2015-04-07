@@ -32,6 +32,9 @@ class FlatlandProblem:
         self.agent_x, self.agent_y = choice(open_tiles)
         self.agent_heading = choice(AGENT_DIRECTIONS)
 
+        self.food_eaten = 0
+        self.poison_eaten = 0
+
     def gen_tile(self):
         return FOOD if r() < self.f else POISON if r() < self.p else EMPTY
 
@@ -69,9 +72,9 @@ class FlatlandProblem:
         self.agent_x, self.agent_y = self.forward_coordinate
 
         if self.get_tile(self.agent_x, self.agent_y) == FOOD:
-            self.eat_food_handler()
+            self.food_eaten += 1
         elif self.get_tile(self.agent_x, self.agent_y) == POISON:
-            self.eat_poison_handler()
+            self.poison_eaten += 1
 
         self.grid[self.agent_y][self.agent_x] = EMPTY
 
@@ -88,8 +91,14 @@ class FlatlandProblem:
             'right': self.get_tile(*self.right_coordinate)
         }
 
-    def eat_food_handler(self):
-        pass  # TODO
+    @property
+    def remaining_food(self):
+        return sum(sum(cell == FOOD for cell in row) for row in self.grid)
 
-    def eat_poison_handler(self):
-        pass  # TODO
+    @property
+    def remaining_poison(self):
+        return sum(sum(cell == POISON for cell in row) for row in self.grid)
+
+    @property
+    def score(self):
+        return (self.food_eaten - self.poison_eaten) / (self.food_eaten + self.remaining_food)
