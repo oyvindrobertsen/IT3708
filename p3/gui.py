@@ -3,7 +3,8 @@ import pygame
 import sys
 from time import sleep
 
-from flatland import FOOD, POISON
+from flatland import FOOD, POISON, DELTAS
+from utils import tuple_add
 
 
 CELL_SIZE = 100
@@ -40,6 +41,10 @@ def flatland_gui(flatland):
             for x, cell in enumerate(row):
                 if (x, y) == flatland.agent_position:
                     circle_in_cell(x, y, (0, 0, 125), radius=CELL_SIZE // 4)
+                    offset = CELL_SIZE // 2
+                    coord = x * CELL_SIZE + offset, y * CELL_SIZE + offset
+                    coord = tuple_add(coord, map(lambda x: 20 * x, DELTAS[flatland.agent_heading]))
+                    pygame.draw.circle(window, (255, 255, 0), coord, CELL_SIZE // 10)
                 elif cell == FOOD:
                     circle_in_cell(x, y, GREEN)
                 elif cell == POISON:
