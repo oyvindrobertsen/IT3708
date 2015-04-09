@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 from random import random as r, choice
 
+from ea.problems import Problem
 from utils import tuple_add
 
 
@@ -17,7 +18,7 @@ POISON = 'P'
 EMPTY = ' '
 
 
-class FlatlandProblem:
+class FlatlandProblem(Problem):
     def __init__(self, w, h, f, p):
         self.width = w
         self.height = h
