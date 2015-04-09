@@ -24,7 +24,7 @@ class NeuralNetwork:
 
     def get_matrix_dimensions(self):
         return [
-            (layers[i] + len(bias.get(i, [])), layers[i + 1]) for i in xrange(len(self.n_regular_neurons) - 1)
+            (self.n_regular_neurons[i] + len(self.bias_neurons.get(i, [])), self.n_regular_neurons[i + 1]) for i in xrange(len(self.n_regular_neurons) - 1)
         ]
 
     def set_layer(self, layer_no, values):
