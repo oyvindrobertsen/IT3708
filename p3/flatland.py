@@ -4,7 +4,7 @@ from random import random as r, choice
 from ea.problems import Problem
 from ea.ea import Individual
 from ann.neural_network import NeuralNetwork
-from utils import tuple_add
+from utils import tuple_add, random_bitstring, normalize_bitstring
 
 
 AGENT_DIRECTIONS = NORTH, WEST, SOUTH, EAST = 'N', 'W', 'S', 'E'
@@ -126,14 +126,13 @@ class EvoFlatland(Problem):
         self.flatland = FlatlandProblem(W, H, F, P, T)
 
     def create_initial_population(self, population_size):
-        return [Individual(''.join([choice((0, 1)) for _ in xrange(self.genotype_size)])) for _ in range(population_size)]
+        return [Individual(random_bitstring(self.genotype_size)) for _ in xrange(population_size)]
 
     def geno_to_pheno(self, genotype):
         """
         Converts each consecutive self.number_of_bits-sized chunk in the genotype to a float between 0 and 1
         """
-        return [int(genotype[i:i + self.number_of_bits], base=2) / (2 ** self.number_of_bits - 1)
-                for i in xrange(0, self.genotype_size, self.number_of_bits)]
+        return [normalize_bitstring(genotype[i:i + self.n_bits]) for i in xrange(0, self.genotype_size, self.n_bits)]
 
     def mutate_genome_component(self, component):
         return 0 if component else 1
@@ -144,5 +143,4 @@ class EvoFlatland(Problem):
         # 3.: evaluate performance
         self.nn.set_weights(phenotype)
         self.flatland.simulate(self.nn)
-        return self.flatland.score()
-
+        return self.flatland.score

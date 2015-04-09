@@ -1,5 +1,5 @@
 from math import exp
-import numpy
+from random import getrandbits
 
 
 def tuple_add(*tuples):
@@ -16,3 +16,11 @@ def step(x, threshold=0.5):
         return 1
     else:
         return 0
+
+
+def random_bitstring(n):
+    return ''.join(str(getrandbits(1)) for _ in xrange(n))
+
+
+def normalize_bitstring(bitstring):
+    return int(bitstring, base=2) / (2 ** len(bitstring) - 1)
