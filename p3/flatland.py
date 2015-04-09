@@ -2,6 +2,7 @@ from __future__ import print_function, division
 from random import random as r, choice
 
 from ea.problems import Problem
+from ea.ea import Individual
 from ann.neural_network import NeuralNetwork
 from utils import tuple_add
 
@@ -26,9 +27,6 @@ class FlatlandProblem:
         self.f = f
         self.p = p
         self.t = t
-        self.number_of_bits = number_of_bits
-        self.number_of_weights = number_of_weights
-        self.genotype_size = self.number_of_bits * self.number_of_weights
 
         self.grid = [[self.gen_tile() for x in xrange(w)] for y in xrange(h)]
 
