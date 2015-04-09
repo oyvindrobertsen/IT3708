@@ -33,6 +33,9 @@ class NeuralNetwork:
         """
         self.neuron_layers[layer_no][:self.n_regular_neurons[layer_no]] = values
 
+    def set_weights(self, weights):
+        self.connections = np.array(weights)
+
     def input(self, *values):
         assert self.connections is not None
         assert len(values) == self.n_regular_neurons[0]

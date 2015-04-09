@@ -2,6 +2,7 @@ from __future__ import print_function, division
 from random import random as r, choice
 
 from ea.problems import Problem
+from ann.neural_network import NeuralNetwork
 from utils import tuple_add
 
 
@@ -18,12 +19,16 @@ POISON = 'P'
 EMPTY = ' '
 
 
-class FlatlandProblem(Problem):
-    def __init__(self, w, h, f, p):
+class FlatlandProblem:
+    def __init__(self, w, h, f, p, t):
         self.width = w
         self.height = h
         self.f = f
         self.p = p
+        self.t = t
+        self.number_of_bits = number_of_bits
+        self.number_of_weights = number_of_weights
+        self.genotype_size = self.number_of_bits * self.number_of_weights
 
         self.grid = [[self.gen_tile() for x in xrange(w)] for y in xrange(h)]
 
@@ -100,6 +105,46 @@ class FlatlandProblem(Problem):
     def remaining_poison(self):
         return sum(sum(cell == POISON for cell in row) for row in self.grid)
 
+    def simulate(self, agent):
+        return
+
     @property
     def score(self):
         return (self.food_eaten - self.poison_eaten) / (self.food_eaten + self.remaining_food)
+
+
+class EvoFlatland(Problem):
+    def __init__(self, n_bits, layers, bias, static=True):
+        self.n_bits = n_bits
+        self.layers = layers
+        self.bias = bias
+        self.nn = NeuralNetwork(layers, bias)
+        self.n_weights = sum(a * b for a, b in self.nn.get_matrix_dimensions())
+        self.genotype_size = self.n_bits * self.n_weights
+        self.static = static
+        W, H = (10, 10)
+        F, P = 0.25, 0.25
+        T = 60
+        self.flatland = FlatlandProblem(W, H, F, P, T)
+
+    def create_initial_population(self, population_size):
+        return [Individual(''.join([choice((0, 1)) for _ in xrange(self.genotype_size)])) for _ in range(population_size)]
+
+    def geno_to_pheno(self, genotype):
+        """
+        Converts each consecutive self.number_of_bits-sized chunk in the genotype to a float between 0 and 1
+        """
+        return [int(genotype[i:i + self.number_of_bits], base=2) / (2 ** self.number_of_bits - 1)
+                for i in xrange(0, self.genotype_size, self.number_of_bits)]
+
+    def mutate_genome_component(self, component):
+        return 0 if component else 1
+
+    def fitness(self, phenotype):
+        # 1.: feed weights from phenotype into network
+        # 2.: run timesteps with these weights
+        # 3.: evaluate performance
+        self.nn.set_weights(phenotype)
+        self.flatland.simulate(self.nn)
+        return self.flatland.score()
+

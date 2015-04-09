@@ -1,11 +1,8 @@
 from __future__ import print_function, division
-from flatland import FlatlandProblem
+from flatland import EvoFlatland
 from gui import flatland_gui
 
 if __name__ == "__main__":
-    W, H = (10, 10)
-    F, P = 0.25, 0.25
-
-    flatland = FlatlandProblem(W, H, F, P)
-
-    flatland_gui(flatland)
+    layers = [6, 4, 3]
+    bias = {}
+    evo_flatland = EvoFlatland(8, layers, bias)
