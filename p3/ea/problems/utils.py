@@ -10,10 +10,12 @@ def set_adult(individual):
     individual.mature = True
     return individual
 
+
 # Adult selection
 
 def full_replacement(population, **kwargs):
     return list(map(set_adult, filter(lambda ind: not ind.mature, population)))
+
 
 def over_production(population, **kwargs):
     if kwargs['number_of_adults']:
@@ -21,17 +23,20 @@ def over_production(population, **kwargs):
     else:
         sys.exit('over_production adult selection requires number of adults to be specified.')
     children = sorted(
-            list(filter(lambda ind: not ind.mature, population)),
-            cmp=lambda x,y: cmp(x.fitness, y.fitness),
-            reverse=True)[:number_of_adults]
+        list(filter(lambda ind: not ind.mature, population)),
+        cmp=lambda x, y: cmp(x.fitness, y.fitness),
+        reverse=True)[:number_of_adults]
     return list(map(set_adult, children))
+
 
 def generational_mixing(population, **kwargs):
     if kwargs['number_of_adults']:
         number_of_adults = kwargs.pop('number_of_adults')
     else:
         sys.exit('generational_mixing adult selection requires number of adults to be specified.')
-    return list(map(set_adult, sorted(population, cmp=lambda x,y: cmp(x.fitness, y.fitness), reverse=True)[:number_of_adults]))
+    return list(
+        map(set_adult, sorted(population, cmp=lambda x, y: cmp(x.fitness, y.fitness), reverse=True)[:number_of_adults]))
+
 
 # Parent selection
 
@@ -48,6 +53,7 @@ def fitness_proportionate_selection(population, **kwargs):
         if total > roll:
             return individual
 
+
 def sigma_scaling_selection(population, **kwargs):
     fitnesses = [individual.fitness for individual in population]
     avg = np.mean(fitnesses)
@@ -60,6 +66,7 @@ def sigma_scaling_selection(population, **kwargs):
         total += sigma_scaled[i]
         if total > roll:
             return population[i]
+
 
 def boltzmann_selection(population, temperature=1, **kwargs):
     fitnesses = [individual.fitness for individual in population]
@@ -81,19 +88,22 @@ def tournament_selection(population, k=1, epsilon=0.2, **kwargs):
         return random.choice(group)
     else:
         return max(group, key=lambda ind: ind.fitness)
-        
+
 
 # Crossover
 
 def one_point_crossover(parent_1, parent_2, **kwargs):
-    from ea import Individual
+    from ea.ea import Individual
+
     roll = random.random()
     cutoff = int(len(parent_1.genotype) * roll)
     child_genotype = parent_1.genotype[:cutoff] + parent_2.genotype[cutoff:]
     return Individual(child_genotype)
 
+
 def braid(parent_1, parent_2, **kwargs):
-    from ea import Individual
+    from ea.ea import Individual
+
     child_genotype = []
     for i in range(len(parent_1.genotype)):
         if i % 2 == 0:
@@ -101,6 +111,7 @@ def braid(parent_1, parent_2, **kwargs):
         else:
             child_genotype.append(parent_1.genotype[i])
     return Individual(child_genotype)
+
 
 # Mutation
 
@@ -112,10 +123,13 @@ def per_genome_component(population, rate, component_modifier, **kwargs):
                 individual.genotype[i] = component_modifier(individual.genotype[i])
     return population
 
+
 def per_genome(population, rate, component_modifier, **kwargs):
     for individual in population:
         roll = random.random()
         if roll <= rate:
-            rand_index = random.randint(0, len(individual.genotype)-1)
-            individual.genotype[rand_index] = component_modifier(individual.genotype[rand_index])
+            rand_index = random.randint(0, len(individual.genotype) - 1)
+            l = list(individual.genotype)
+            l[rand_index] = component_modifier(l[rand_index])
+            individual.genotype = ''.join(str(x) for x in l)
     return population

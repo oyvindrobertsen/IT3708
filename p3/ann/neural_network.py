@@ -34,7 +34,11 @@ class NeuralNetwork:
         self.neuron_layers[layer_no][:self.n_regular_neurons[layer_no]] = values
 
     def set_weights(self, weights):
-        self.connections = np.array(weights)
+        self.connections = [np.zeros(md) for md in self.get_matrix_dimensions()]
+        for matrix in self.connections:
+            for i, row in enumerate(matrix):
+                for j, col in enumerate(row):
+                    matrix[i][j] = weights.pop()
 
     def propagate_input(self, values):
         """

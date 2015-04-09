@@ -128,6 +128,8 @@ class Flatland:
 
             self.agent_forward()
 
+            self.t -= 1
+
     @property
     def score(self):
         return (self.food_eaten - self.poison_eaten) / (self.food_eaten + self.remaining_food)

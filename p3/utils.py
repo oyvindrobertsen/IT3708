@@ -1,3 +1,4 @@
+from __future__ import division
 from math import exp
 from random import getrandbits
 
