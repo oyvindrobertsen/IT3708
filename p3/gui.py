@@ -3,7 +3,7 @@ import pygame
 import sys
 from time import sleep
 
-from flatland import FOOD, POISON, DELTAS
+from enums import *
 from utils import tuple_add
 
 
@@ -15,7 +15,10 @@ GREEN = (0, 125, 0)
 RED = (125, 0, 0)
 
 
-def flatland_gui(flatland):
+def flatland_gui(flatland, actions):
+    """
+    takes a fresh board and a list of actions and visualizes
+    """
     window_w, window_h = flatland.width * CELL_SIZE, flatland.height * CELL_SIZE
 
     pygame.init()
@@ -27,7 +30,7 @@ def flatland_gui(flatland):
         coord = cell_x * CELL_SIZE + offset, cell_y * CELL_SIZE + offset
         pygame.draw.circle(window, color, coord, radius)
 
-    while True:
+    for action in actions:
         window.fill(BACKGROUND)
         for x in xrange(flatland.width):
             x1 = x * CELL_SIZE - 1
@@ -54,6 +57,12 @@ def flatland_gui(flatland):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit(0)
+                return
 
-        sleep(0.5)
+        sleep(0.25)
+        flatland.perform_action(action)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return

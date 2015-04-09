@@ -120,7 +120,8 @@ def per_genome_component(population, rate, component_modifier, **kwargs):
         for i in range(len(individual.genotype)):
             roll = random.random()
             if roll <= rate:
-                individual.genotype[i] = component_modifier(individual.genotype[i])
+                replacement = component_modifier(individual.genotype[i])
+                individual.genotype = replace_element_i(individual.genotype, i, replacement)
     return population
 
 
@@ -129,7 +130,12 @@ def per_genome(population, rate, component_modifier, **kwargs):
         roll = random.random()
         if roll <= rate:
             rand_index = random.randint(0, len(individual.genotype) - 1)
-            l = list(individual.genotype)
-            l[rand_index] = component_modifier(l[rand_index])
-            individual.genotype = ''.join(str(x) for x in l)
+            replacement = component_modifier(individual.genotype[rand_index])
+            individual.genotype = replace_element_i(individual.genotype, rand_index, replacement)
     return population
+
+
+def replace_element_i(s, i, replacement):
+    l = list(s)
+    l[i] = replacement
+    return ''.join(str(x) for x in l)

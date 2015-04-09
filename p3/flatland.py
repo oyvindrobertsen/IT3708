@@ -5,22 +5,9 @@ from random import random as r, choice
 from ea.problems import Problem
 from ea.ea import Individual
 from ann.neural_network import NeuralNetwork
+from gui import flatland_gui
 from utils import tuple_add, random_bitstring, normalize_bitstring, matrix_fit
-
-
-AGENT_DIRECTIONS = NORTH, WEST, SOUTH, EAST = 'N', 'W', 'S', 'E'
-DELTAS = {
-    NORTH: (0, -1),
-    WEST: (-1, 0),
-    SOUTH: (0, 1),
-    EAST: (1, 0)
-}
-
-FOOD = 'F'
-POISON = 'P'
-EMPTY = ' '
-
-ACTIONS = LEFT, FORWARD, RIGHT = 'LFT', 'FWD', 'RGT'
+from enums import *
 
 
 class Flatland:
@@ -41,8 +28,6 @@ class Flatland:
 
         self.food_eaten = 0
         self.poison_eaten = 0
-
-        self.actions = []
 
     def gen_tile(self):
         return FOOD if r() < self.f else POISON if r() < self.p else EMPTY
@@ -120,9 +105,8 @@ class Flatland:
             self.agent_turn_right()
             self.agent_forward()
 
-        self.actions.append(action)
-
     def simulate(self, agent):
+        actions = []
         while self.t > 0:
             sensors = self.get_sensor_readings()
             input_layer = [
@@ -144,9 +128,15 @@ class Flatland:
 
             self.t -= 1
 
+            actions.append(action)
+
+        return actions
+
     @property
     def score(self):
-        return (self.food_eaten - self.poison_eaten) / (self.food_eaten + self.remaining_food)
+        food_score = self.food_eaten / (self.food_eaten + self.remaining_food)
+        poison_score = self.poison_eaten / (self.poison_eaten + self.remaining_poison)
+        return food_score - poison_score
 
 
 class EvoFlatland(Problem):
@@ -175,7 +165,7 @@ class EvoFlatland(Problem):
         return matrix_fit([weight(i) for i in xrange(0, self.genotype_size, self.n_bits)], matrix_dimensions)
 
     def mutate_genome_component(self, component):
-        return 0 if component else 1
+        return 0 if int(component) else 1
 
     def fitness(self, phenotype):
         # 1.: feed weights from phenotype into network
@@ -191,9 +181,17 @@ class EvoFlatland(Problem):
 
     def visualization(self, **kwargs):
         individual = kwargs.get('individual')
-        print(individual.fitness)
         flatland = deepcopy(self.flatland)
 
         self.nn.connections = individual.phenotype
-        flatland.simulate(self.nn)
-        print(flatland.actions)
+
+        actions = flatland.simulate(self.nn)
+
+        print('F: {}/{}, P: {}/{}'.format(
+            flatland.food_eaten,
+            flatland.food_eaten + flatland.remaining_food,
+            flatland.poison_eaten,
+            flatland.poison_eaten + flatland.remaining_poison
+        ))
+
+        flatland_gui(deepcopy(self.flatland), actions)

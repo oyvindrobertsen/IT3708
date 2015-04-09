@@ -94,7 +94,7 @@ class EARunner(object):
             self.maximums.append(generation_max_fitness)
             std_dev = np.std(np.array(fitnesses))
             self.std_devs.append(std_dev)
-            log_generation(generation, generation_max_fitness, avg, std_dev, generation_max_phenotype)
+            log_generation(generation, generation_max_fitness, avg, std_dev)
 
             if done:
                 break
