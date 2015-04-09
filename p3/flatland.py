@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+from copy import deepcopy
 from random import random as r, choice
 
 from ea.problems import Problem
@@ -20,7 +21,7 @@ POISON = 'P'
 EMPTY = ' '
 
 
-class FlatlandProblem:
+class Flatland:
     def __init__(self, w, h, f, p, t):
         self.width = w
         self.height = h
@@ -104,7 +105,28 @@ class FlatlandProblem:
         return sum(sum(cell == POISON for cell in row) for row in self.grid)
 
     def simulate(self, agent):
-        return
+        while self.t > 0:
+            sensors = self.get_sensor_readings()
+            input_layer = [
+                int(sensors['left'] == FOOD),
+                int(sensors['forward'] == FOOD),
+                int(sensors['right'] == FOOD),
+                int(sensors['left'] == POISON),
+                int(sensors['forward'] == POISON),
+                int(sensors['right'] == POISON)
+            ]
+            output = agent.propagate_input(input_layer)
+
+            action_i = max(range(len(output)), key=lambda i: output[i])
+
+            # TODO: threshold?
+
+            if action_i == 0:
+                self.agent_turn_left()
+            elif action_i == 2:
+                self.agent_turn_right()
+
+            self.agent_forward()
 
     @property
     def score(self):
@@ -114,7 +136,7 @@ class FlatlandProblem:
 class EvoFlatland(Problem):
     def __init__(self, n_bits, layers, bias, static=True):
         self.n_bits = n_bits
-        self.layers = layers
+        self.layers = layers # layer 0: [left food, fwd food, right food, left poison, fwd poison, right poison]
         self.bias = bias
         self.nn = NeuralNetwork(layers, bias)
         self.n_weights = sum(a * b for a, b in self.nn.get_matrix_dimensions())
@@ -123,7 +145,7 @@ class EvoFlatland(Problem):
         W, H = (10, 10)
         F, P = 0.25, 0.25
         T = 60
-        self.flatland = FlatlandProblem(W, H, F, P, T)
+        self.flatland = Flatland(W, H, F, P, T)
 
     def create_initial_population(self, population_size):
         return [Individual(random_bitstring(self.genotype_size)) for _ in xrange(population_size)]
@@ -141,6 +163,9 @@ class EvoFlatland(Problem):
         # 1.: feed weights from phenotype into network
         # 2.: run timesteps with these weights
         # 3.: evaluate performance
+
+        flatland = deepcopy(self.flatland)
+
         self.nn.set_weights(phenotype)
-        self.flatland.simulate(self.nn)
-        return self.flatland.score
+        flatland.simulate(self.nn)
+        return flatland.score

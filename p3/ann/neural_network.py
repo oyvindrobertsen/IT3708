@@ -8,7 +8,7 @@ from utils import sigmoid
 
 class NeuralNetwork:
     def __init__(self, layers, bias={}, activation_function=sigmoid):
-        assert len(layers) > 2
+        assert len(layers) >= 2
 
         self.n_regular_neurons = layers
         self.bias_neurons = bias
@@ -36,7 +36,11 @@ class NeuralNetwork:
     def set_weights(self, weights):
         self.connections = np.array(weights)
 
-    def input(self, *values):
+    def propagate_input(self, values):
+        """
+        takes input values, forward propagates them through the network
+        and returns the activation values for the output layer
+        """
         assert self.connections is not None
         assert len(values) == self.n_regular_neurons[0]
 
@@ -48,7 +52,7 @@ class NeuralNetwork:
 
             self.set_layer(layer_no + 1, self.vector_activation_function(a.dot(b)))
 
-        print(*self.neuron_layers, sep='\n')
+        return self.neuron_layers[-1]
 
 
 if __name__ == '__main__':
@@ -61,4 +65,4 @@ if __name__ == '__main__':
     nn = NeuralNetwork(layers, bias)
     nn.connections = [random_matrix(a, b) for (a, b) in nn.get_matrix_dimensions()]
 
-    nn.input(1, 0, 1)
+    nn.propagate_input([1, 0, 1])
