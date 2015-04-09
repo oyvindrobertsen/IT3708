@@ -1,6 +1,7 @@
 from __future__ import division
 from math import exp
 from random import getrandbits
+import numpy as np
 
 
 def tuple_add(*tuples):
@@ -25,3 +26,16 @@ def random_bitstring(n):
 
 def normalize_bitstring(bitstring):
     return int(bitstring, base=2) / (2 ** len(bitstring) - 1)
+
+
+def matrix_fit(array_data, matrix_dimensions):
+    """
+    fills the matrices with data from the 1D array
+    """
+    matrices = np.array([np.zeros(md) for md in matrix_dimensions])
+    for matrix in matrices:
+        for i, row in enumerate(matrix):
+            for j, col in enumerate(row):
+                matrix[i][j] = array_data.pop()
+
+    return matrices

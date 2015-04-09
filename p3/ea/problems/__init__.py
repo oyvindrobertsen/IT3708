@@ -26,3 +26,6 @@ class Problem(object):
 
     def __repr__(self):
         return self.__class__.__name__
+
+    def visualization(self, *args, **kwargs):
+        pass

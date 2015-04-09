@@ -5,7 +5,7 @@ from random import random as r, choice
 from ea.problems import Problem
 from ea.ea import Individual
 from ann.neural_network import NeuralNetwork
-from utils import tuple_add, random_bitstring, normalize_bitstring
+from utils import tuple_add, random_bitstring, normalize_bitstring, matrix_fit
 
 
 AGENT_DIRECTIONS = NORTH, WEST, SOUTH, EAST = 'N', 'W', 'S', 'E'
@@ -19,6 +19,8 @@ DELTAS = {
 FOOD = 'F'
 POISON = 'P'
 EMPTY = ' '
+
+ACTIONS = LEFT, FORWARD, RIGHT = 'LFT', 'FWD', 'RGT'
 
 
 class Flatland:
@@ -39,6 +41,8 @@ class Flatland:
 
         self.food_eaten = 0
         self.poison_eaten = 0
+
+        self.actions = []
 
     def gen_tile(self):
         return FOOD if r() < self.f else POISON if r() < self.p else EMPTY
@@ -104,6 +108,20 @@ class Flatland:
     def remaining_poison(self):
         return sum(sum(cell == POISON for cell in row) for row in self.grid)
 
+    def perform_action(self, action):
+        assert action in ACTIONS
+
+        if action == LEFT:
+            self.agent_turn_left()
+            self.agent_forward()
+        elif action == FORWARD:
+            self.agent_forward()
+        elif action == RIGHT:
+            self.agent_turn_right()
+            self.agent_forward()
+
+        self.actions.append(action)
+
     def simulate(self, agent):
         while self.t > 0:
             sensors = self.get_sensor_readings()
@@ -118,15 +136,11 @@ class Flatland:
             output = agent.propagate_input(input_layer)
 
             action_i = max(range(len(output)), key=lambda i: output[i])
+            action = ACTIONS[action_i]
 
             # TODO: threshold?
 
-            if action_i == 0:
-                self.agent_turn_left()
-            elif action_i == 2:
-                self.agent_turn_right()
-
-            self.agent_forward()
+            self.perform_action(action)
 
             self.t -= 1
 
@@ -138,7 +152,7 @@ class Flatland:
 class EvoFlatland(Problem):
     def __init__(self, n_bits, layers, bias, static=True):
         self.n_bits = n_bits
-        self.layers = layers # layer 0: [left food, fwd food, right food, left poison, fwd poison, right poison]
+        self.layers = layers  # layer 0: [left food, fwd food, right food, left poison, fwd poison, right poison]
         self.bias = bias
         self.nn = NeuralNetwork(layers, bias)
         self.n_weights = sum(a * b for a, b in self.nn.get_matrix_dimensions())
@@ -156,7 +170,9 @@ class EvoFlatland(Problem):
         """
         Converts each consecutive self.number_of_bits-sized chunk in the genotype to a float between 0 and 1
         """
-        return [normalize_bitstring(genotype[i:i + self.n_bits]) for i in xrange(0, self.genotype_size, self.n_bits)]
+        weight = lambda i: normalize_bitstring(genotype[i:i + self.n_bits])
+        matrix_dimensions = self.nn.get_matrix_dimensions()
+        return matrix_fit([weight(i) for i in xrange(0, self.genotype_size, self.n_bits)], matrix_dimensions)
 
     def mutate_genome_component(self, component):
         return 0 if component else 1
@@ -168,6 +184,16 @@ class EvoFlatland(Problem):
 
         flatland = deepcopy(self.flatland)
 
-        self.nn.set_weights(phenotype)
+        self.nn.connections = phenotype
         flatland.simulate(self.nn)
+
         return flatland.score
+
+    def visualization(self, **kwargs):
+        individual = kwargs.get('individual')
+        print(individual.fitness)
+        flatland = deepcopy(self.flatland)
+
+        self.nn.connections = individual.phenotype
+        flatland.simulate(self.nn)
+        print(flatland.actions)
