@@ -10,4 +10,9 @@ def sigmoid(x):
     # return tanh(x)
     return 1 / (1 + exp(-x))
 
-vector_sigmoid = numpy.vectorize(sigmoid)
+
+def step(x, threshold=0.5):
+    if x > threshold:
+        return 1
+    else:
+        return 0

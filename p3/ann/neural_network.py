@@ -3,38 +3,59 @@ from __future__ import print_function, division
 from numpy.random import rand as random_matrix
 import numpy as np
 
-from utils import vector_sigmoid
+from utils import sigmoid
 
 
 class NeuralNetwork:
-    def __init__(self, layers):
+    def __init__(self, layers, bias={}, activation_function=sigmoid):
         assert len(layers) > 2
 
-        self.layers = layers
+        self.n_regular_neurons = layers
+        self.bias_neurons = bias
 
-        self.connections = self.generate_initial_weights()
-        # rows for the first layer, cols for the second
+        self.connections = None
 
-        self.neuron_layers = [np.array(0 for _ in xrange(layer)) for layer in layers]
+        self.neuron_layers = [
+            np.concatenate((np.zeros(n), self.bias_neurons.get(i, []))) for i, n in enumerate(layers)
+        ]
+        # print(*self.neuron_layers, sep='\n')
 
-        print(*self.connections, sep='\n')
+        self.vector_activation_function = np.vectorize(activation_function)
 
-    def generate_initial_weights(self):
-        return [random_matrix(a, b) for (a, b) in zip(self.layers[:-1], self.layers[1:])]
+    def get_matrix_dimensions(self):
+        return [
+            (layers[i] + len(bias.get(i, [])), layers[i + 1]) for i in xrange(len(self.n_regular_neurons) - 1)
+        ]
+
+    def set_layer(self, layer_no, values):
+        """
+        possible bias neurons sit at the end of the layer, so assign only to the correct slice
+        """
+        self.neuron_layers[layer_no][:self.n_regular_neurons[layer_no]] = values
 
     def input(self, *values):
-        assert len(values) == self.layers[0]
+        assert self.connections is not None
+        assert len(values) == self.n_regular_neurons[0]
 
-        self.neuron_layers[0] = np.array(values)
+        self.set_layer(0, np.array(values))
 
-        for layer_no in xrange(len(self.layers) - 1):
+        for layer_no in xrange(len(self.n_regular_neurons) - 1):
             a = self.neuron_layers[layer_no]
             b = self.connections[layer_no]
 
-            self.neuron_layers[layer_no + 1] = vector_sigmoid(a.dot(b))
+            self.set_layer(layer_no + 1, self.vector_activation_function(a.dot(b)))
 
-        print(self.neuron_layers)
+        print(*self.neuron_layers, sep='\n')
 
 
-nn = NeuralNetwork([3, 5, 2])
-nn.input(1, 0, 1)
+if __name__ == '__main__':
+    # number of normal neurons per layer
+    layers = [3, 5, 2]
+
+    # values of any bias neurons in the key layer
+    bias = {0: [1.0]}
+
+    nn = NeuralNetwork(layers, bias)
+    nn.connections = [random_matrix(a, b) for (a, b) in nn.get_matrix_dimensions()]
+
+    nn.input(1, 0, 1)
