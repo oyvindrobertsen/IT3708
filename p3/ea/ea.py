@@ -60,6 +60,7 @@ class EARunner(object):
         analyze_after_loop = True
         bestest = None
         for generation in range(self.generations):
+            self.problem.pre_generation_hook()
             # Genotype to phenotype conversion
             # Analyzing population of this generation, logging
             total = 0
@@ -73,8 +74,7 @@ class EARunner(object):
                 if individual.phenotype is None:
                     individual.phenotype = self.problem.geno_to_pheno(individual.genotype)
                 # Evaluate fitness
-                if not individual.fitness:
-                    individual.fitness = self.problem.fitness(individual.phenotype)
+                individual.fitness = self.problem.fitness(individual.phenotype)
 
                 if individual.fitness > self.threshold or individual.fitness == 1.0:
                     done = True
@@ -125,6 +125,7 @@ class EARunner(object):
                         children.append(child_2)
             children = self.mutate(children, self.mutation_rate, self.problem.mutate_genome_component, **kwargs)
             self.population = self.population + children
+
 
         self.problem.visualization(individual=bestest)
 

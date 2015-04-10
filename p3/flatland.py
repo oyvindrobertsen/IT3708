@@ -148,10 +148,10 @@ class EvoFlatland(Problem):
         self.n_weights = sum(a * b for a, b in self.nn.get_matrix_dimensions())
         self.genotype_size = self.n_bits * self.n_weights
         self.static = static
-        W, H = (10, 10)
-        F, P = 0.25, 0.25
-        T = 60
-        self.flatland = Flatland(W, H, F, P, T)
+        self.W, self.H = (10, 10)
+        self.F, self.P = 0.33, 0.33
+        self.T = 60
+        self.flatland = Flatland(self.W, self.H, self.F, self.P, self.T)
 
     def create_initial_population(self, population_size):
         return [Individual(random_bitstring(self.genotype_size)) for _ in xrange(population_size)]
@@ -166,6 +166,10 @@ class EvoFlatland(Problem):
 
     def mutate_genome_component(self, component):
         return 0 if int(component) else 1
+
+    def pre_generation_hook(self):
+        if not self.static:
+            self.flatland = Flatland(self.W, self.H, self.F, self.P, self.T)
 
     def fitness(self, phenotype):
         # 1.: feed weights from phenotype into network
@@ -193,5 +197,6 @@ class EvoFlatland(Problem):
             flatland.poison_eaten,
             flatland.poison_eaten + flatland.remaining_poison
         ))
+        print('Fitness: ', self.fitness(individual.phenotype))
 
         flatland_gui(deepcopy(self.flatland), actions)

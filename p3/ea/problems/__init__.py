@@ -24,6 +24,12 @@ class Problem(object):
         '''
         raise NotImplementedError("Must be implemented by Problem subclass.")
 
+    def pre_generation_hook(self):
+        '''
+        Function that is called after each generation
+        '''
+        pass
+
     def __repr__(self):
         return self.__class__.__name__
 

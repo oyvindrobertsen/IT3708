@@ -5,18 +5,19 @@ from ea.ea import EARunner
 from ea.problems.utils import *
 
 if __name__ == "__main__":
-    layers = [6, 6, 5, 3]
-    bias = {2: [1.0]}
-    problem = EvoFlatland(8, layers, bias)
+    layers = [6, 3]
+    #bias = {2: [1.0]}
+    bias = {}
+    problem = EvoFlatland(1, layers, bias, static=False)
 
     # Configure the runner
     population_size = 200
-    generations = 100
-    crossover_rate = 0.80
+    generations = 150
+    crossover_rate = 0.5
     mutation_rate = 0.01
     adult_selection = generational_mixing
     adult_to_child_ratio = 0.5
-    parent_selection = sigma_scaling_selection
+    parent_selection = tournament_selection
     k = 8
     epsilon = 0.05
     crossover_function = one_point_crossover
@@ -39,3 +40,4 @@ if __name__ == "__main__":
         threshold=threshold
     )
     runner1.solve()
+    runner1.plot()
