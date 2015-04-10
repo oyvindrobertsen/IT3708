@@ -11,15 +11,15 @@ CELL_SIZE = 100
 BACKGROUND = (255, 255, 255)
 FOREGROUND = (0, 0, 0)
 
-GREEN = (0, 125, 0)
-RED = (125, 0, 0)
+FOOD_COLOR = (0, 125, 0)
+POISON_COLOR = (125, 0, 0)
 
 
 def flatland_gui(flatland, actions):
     """
     takes a fresh board and a list of actions and visualizes
     """
-    window_w, window_h = flatland.width * CELL_SIZE, flatland.height * CELL_SIZE
+    window_w, window_h = flatland.w * CELL_SIZE, flatland.h * CELL_SIZE
 
     pygame.init()
 
@@ -30,13 +30,13 @@ def flatland_gui(flatland, actions):
         coord = cell_x * CELL_SIZE + offset, cell_y * CELL_SIZE + offset
         pygame.draw.circle(window, color, coord, radius)
 
-    for action in actions:
+    for action in actions + [NOOP]:
         window.fill(BACKGROUND)
-        for x in xrange(flatland.width):
+        for x in xrange(flatland.w):
             x1 = x * CELL_SIZE - 1
             pygame.draw.line(window, FOREGROUND, (x1, 0), (x1, window_h), 2)
 
-        for y in xrange(flatland.height):
+        for y in xrange(flatland.h):
             y1 = y * CELL_SIZE - 1
             pygame.draw.line(window, FOREGROUND, (0, y1), (window_w, y1), 2)
 
@@ -49,9 +49,9 @@ def flatland_gui(flatland, actions):
                     coord = tuple_add(coord, map(lambda x: 20 * x, DELTAS[flatland.agent_heading]))
                     pygame.draw.circle(window, (255, 255, 0), coord, CELL_SIZE // 10)
                 elif cell == FOOD:
-                    circle_in_cell(x, y, GREEN)
+                    circle_in_cell(x, y, FOOD_COLOR)
                 elif cell == POISON:
-                    circle_in_cell(x, y, RED)
+                    circle_in_cell(x, y, POISON_COLOR)
 
         pygame.display.flip()
 

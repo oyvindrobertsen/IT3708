@@ -7,7 +7,7 @@ from utils import sigmoid
 
 
 class NeuralNetwork:
-    def __init__(self, layers, bias={}, activation_function=sigmoid):
+    def __init__(self, layers, bias={}, activation_function=sigmoid, activation_threshold=0.0):
         assert len(layers) >= 2
 
         self.n_regular_neurons = layers
@@ -18,9 +18,8 @@ class NeuralNetwork:
         self.neuron_layers = [
             np.concatenate((np.zeros(n), self.bias_neurons.get(i, []))) for i, n in enumerate(layers)
         ]
-        # print(*self.neuron_layers, sep='\n')
 
-        self.vector_activation_function = np.vectorize(activation_function)
+        self.vector_activation_function = np.vectorize(lambda x: activation_function(x - activation_threshold))
 
     def get_matrix_dimensions(self):
         return [
@@ -29,7 +28,7 @@ class NeuralNetwork:
 
     def set_layer(self, layer_no, values):
         """
-        possible bias neurons sit at the end of the layer, so assign only to the correct slice
+        possible bias neurons sit at the end of the layer, so assignment shouldn't touch those
         """
         self.neuron_layers[layer_no][:self.n_regular_neurons[layer_no]] = values
 

@@ -1,18 +1,26 @@
 from __future__ import print_function, division
 
-from flatland import EvoFlatland
+from flatland import FlatlandProblem
 from ea.ea import EARunner
 from ea.problems.utils import *
 
 if __name__ == "__main__":
     layers = [6, 3]
-    #bias = {2: [1.0]}
     bias = {}
-    problem = EvoFlatland(1, layers, bias, static=False)
+    problem = FlatlandProblem(
+        1,
+        layers,
+        bias,
+        f=0.33,
+        p=0.33,
+        t=60,
+        activation_threshold=0.0,
+        minimum_activation=0.1
+    )
 
     # Configure the runner
     population_size = 200
-    generations = 150
+    generations = 100
     crossover_rate = 0.5
     mutation_rate = 0.01
     adult_selection = generational_mixing
