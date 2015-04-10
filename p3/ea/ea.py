@@ -59,6 +59,7 @@ class EARunner(object):
         # Start evolution
         analyze_after_loop = True
         bestest = None
+        best_board = None
         for generation in range(self.generations):
             self.problem.pre_generation_hook()
             # Genotype to phenotype conversion
@@ -87,7 +88,7 @@ class EARunner(object):
                     generation_max_phenotype = individual.phenotype
 
             if bestest is None or best.fitness > bestest.fitness:
-                bestest = best
+                bestest, best_board = deepcopy(best), deepcopy(self.problem.flatland)
 
             avg = total / len(self.population)
             self.averages.append(avg)
@@ -127,7 +128,7 @@ class EARunner(object):
             self.population = self.population + children
 
 
-        self.problem.visualization(individual=bestest)
+        self.problem.visualization(individual=bestest, board=best_board)
 
         # Analyze last generated generation if we didn't find a solution
         if analyze_after_loop:

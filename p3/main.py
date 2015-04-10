@@ -6,7 +6,7 @@ from ea.problems.utils import *
 
 if __name__ == "__main__":
     layers = [6, 3]
-    bias = {}
+    bias = {0: [1.0]}
     problem = FlatlandProblem(
         1,
         layers,
@@ -15,7 +15,8 @@ if __name__ == "__main__":
         p=0.33,
         t=60,
         activation_threshold=0.0,
-        minimum_activation=0.1
+        minimum_activation=0.1,
+        static=False
     )
 
     # Configure the runner
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     adult_to_child_ratio = 0.5
     parent_selection = tournament_selection
     k = 8
-    epsilon = 0.05
+    epsilon = 0.15
     crossover_function = one_point_crossover
     mutation_function = per_genome_component
     threshold = 1.0

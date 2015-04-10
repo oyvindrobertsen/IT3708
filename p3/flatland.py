@@ -178,7 +178,9 @@ class FlatlandProblem(Problem):
 
     def visualization(self, **kwargs):
         individual = kwargs.get('individual')
-        flatland = deepcopy(self.flatland)
+        board = kwargs.get('board')
+
+        flatland = deepcopy(board)
 
         self.neural_network.connections = individual.phenotype
 
@@ -192,4 +194,4 @@ class FlatlandProblem(Problem):
         ))
         print('Fitness: ', self.fitness(individual.phenotype))
 
-        flatland_gui(deepcopy(self.flatland), actions)
+        flatland_gui(deepcopy(board), actions)
