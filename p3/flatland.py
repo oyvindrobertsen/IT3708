@@ -164,12 +164,12 @@ class FlatlandProblem(Problem):
                 t=self.flatland.t
             )
 
-    def fitness(self, phenotype):
+    def fitness(self, phenotype, board=None):
         # 1.: feed weights from phenotype into network
         # 2.: run timesteps with these weights
         # 3.: evaluate performance
 
-        flatland = deepcopy(self.flatland)
+        flatland = deepcopy(board or self.flatland)
 
         self.neural_network.connections = phenotype
         flatland.simulate(agent=self.neural_network)
@@ -192,6 +192,6 @@ class FlatlandProblem(Problem):
             flatland.poison_eaten,
             flatland.poison_eaten + flatland.get_count_of_value(POISON)
         ))
-        print('Fitness: ', self.fitness(individual.phenotype))
+        print('Fitness: ', self.fitness(individual.phenotype, board=board))
 
         flatland_gui(deepcopy(board), actions)
