@@ -32,7 +32,7 @@ def matrix_fit(array_data, matrix_dimensions):
     """
     fills the matrices with data from the 1D array
     """
-    matrices = np.array([np.zeros(md) for md in matrix_dimensions])
+    matrices = [np.zeros(md) for md in matrix_dimensions]
     for matrix in matrices:
         for i, row in enumerate(matrix):
             for j, col in enumerate(row):
