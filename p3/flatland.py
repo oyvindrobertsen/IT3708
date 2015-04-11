@@ -5,7 +5,7 @@ from random import random as r, choice
 from ea.problems import Problem
 from ea.ea import Individual
 from ann.neural_network import NeuralNetwork
-from gui import flatland_gui
+from gui import FlatlandGUI
 from utils import tuple_add, random_bitstring, normalize_bitstring, matrix_fit, sigmoid, TorusWorld
 from enums import *
 
@@ -194,4 +194,4 @@ class FlatlandProblem(Problem):
         ))
         print('Fitness: ', self.fitness(individual.phenotype, board=board))
 
-        flatland_gui(deepcopy(board), actions)
+        FlatlandGUI(deepcopy(board), actions)
