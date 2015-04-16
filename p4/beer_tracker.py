@@ -1,13 +1,10 @@
 from __future__ import division, print_function
 from random import randint
-import numpy as np
+
 
 DIRECTIONS = LEFT, RIGHT = -1, 1
 
 TRACKER_WIDTH = 5
-
-EMPTY = ' '
-OBJECT = 'O'
 
 
 class BeerTrackerAgent:
@@ -17,7 +14,7 @@ class BeerTrackerAgent:
 
     @property
     def rightmost(self):
-        return (self.leftmost + TRACKER_WIDTH) % self.world.width
+        return (self.leftmost + TRACKER_WIDTH - 1) % self.world.width
 
     @property
     def columns(self):
@@ -38,16 +35,31 @@ class BeerTrackerAgent:
                 self.leftmost -= (self.rightmost - self.world.width)
 
     def get_sensor_readings(self):
-        return [OBJECT in self.world.get_column(i) for i in self.columns]
+        return [col_no in self.world.active_object.columns for col_no in self.columns]
 
-    def capture(self, size):
-        print('CAPTURE')
+    def capture(self, obj):
+        print('CAPTURE', obj.width)
 
-    def avoidance(self, size):
-        print('AVOIDANCE')
+    def avoidance(self, obj):
+        print('AVOIDANCE', obj.width)
 
-    def fail(self, size):
-        print('FAIL')
+    def fail(self, obj):
+        print('FAIL', obj.width)
+
+
+class BeerTrackerObject:
+    def __init__(self, left, y_position, width):
+        self.leftmost = left
+        self.y_position = y_position
+        self.width = width
+
+    @property
+    def rightmost(self):
+        return self.leftmost + self.width - 1
+
+    @property
+    def columns(self):
+        return range(self.leftmost, self.rightmost + 1)
 
 
 class BeerTrackerWorld:
@@ -56,63 +68,56 @@ class BeerTrackerWorld:
         self.height = height
         self.wrap = wrap
 
-        self.grid = np.array([[EMPTY for _ in xrange(self.width)] for _ in xrange(self.height)])
         self.agent = BeerTrackerAgent(world=self)
+        self.active_object = None
 
-    def get_column(self, i):
-        return self.grid[:, i]
-
-    def add_falling_object(self):
-        object_width = randint(1, 6)
-        left = randint(0, self.width - object_width)
-        self.grid[0][left:left + object_width].fill(OBJECT)
+    def new_falling_object(self):
+        width = randint(1, 6)
+        left = randint(0, self.width - width)
+        self.active_object = BeerTrackerObject(left, self.height, width)
 
     def tick(self):
-        if OBJECT in self.grid[-1]:
-            size = list(self.grid[-1]).count(OBJECT)
-            l = list(self.grid[-1]).index(OBJECT)
-            r = l + size
-
-            object_cols = set(range(l, r))
+        if self.active_object.y_position == 0:
+            print(self.agent.get_sensor_readings())
+            object_cols = set(self.active_object.columns)
             agent_cols = set(self.agent.columns)
             if object_cols.issubset(agent_cols):
-                self.agent.capture(size)
+                self.agent.capture(self.active_object)
             elif object_cols.intersection(agent_cols):
-                self.agent.fail(size)
+                self.agent.fail(self.active_object)
             else:
-                self.agent.avoidance(size)
+                self.agent.avoidance(self.active_object)
 
-            self.grid[-1].fill(EMPTY)
-            self.add_falling_object()
+            self.new_falling_object()
             return
 
-        for i, row in enumerate(self.grid):
-            if OBJECT in row:
-                self.grid[i + 1] = self.grid[i]
-                self.grid[i].fill(EMPTY)
-                return
+        self.active_object.y_position -= 1
 
     def pull(self):
-        for i, row in enumerate(self.grid):
-            if OBJECT in row:
-                self.grid[-1] = self.grid[i]
-                self.grid[i].fill(EMPTY)
-                return
+        self.active_object.y_position = 0
 
     def terminal_print(self):
-        for row in self.grid:
+        for y in xrange(self.height, 0, -1):
             print('|', end='')
-            print(*row, sep='', end='')
-            print('|')
+            for j in xrange(self.width):
+                c = ' '
+                if j in self.active_object.columns:
+                    if y == self.active_object.y_position:
+                        c = 'V'
+                    elif y < self.active_object.y_position:
+                        c = ':'
+                print(c, sep='', end='')
+            print('| {:>2}'.format(y))
+
         print(' ', end='')
-        for i in xrange(self.width):
-            print('^' if i in self.agent.columns else ' ', sep='', end='')
-        print(' ')
+        for y in xrange(self.width):
+            print('^' if y in self.agent.columns else ' ', sep='', end='')
+        print('   0')
 
 
 if __name__ == "__main__":
     btw = BeerTrackerWorld(30, 15, wrap=True)
-    btw.add_falling_object()
+    btw.new_falling_object()
     btw.terminal_print()
     btw.agent.move(LEFT, 4)
     btw.tick()
