@@ -30,6 +30,9 @@ class Problem(object):
         '''
         pass
 
+    def generate_new_scenario(self):
+        raise NotImplementedError("Must be implemented by Problem subclass.")
+
     def __repr__(self):
         return self.__class__.__name__
 

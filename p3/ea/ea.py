@@ -34,8 +34,9 @@ class EARunner(object):
                  mutation_function=None, threshold=None, **kwargs):
         if None in (problem, population_size, generations, crossover_rate,
                     mutation_rate, adult_selection, adult_to_child_ratio, parent_selection,
-                    crossover_function, mutation_function, threshold):
+                    crossover_function, mutation_function):
             raise RuntimeError('A parameter that can not be None is None.')
+
         self.problem = problem
         self.population_size = population_size
         self.generations = generations
@@ -60,6 +61,13 @@ class EARunner(object):
         analyze_after_loop = True
         bestest = None
         best_board = None
+
+        if self.problem.static:
+            if self.problem.num_scenarios == 1:
+                scenarios = [self.problem.flatland]
+            else:
+                scenarios = [self.problem.generate_new_scenario() for _ in xrange(self.problem.num_scenarios)]
+
         for generation in range(self.generations):
             self.problem.pre_generation_hook()
             # Genotype to phenotype conversion
@@ -70,14 +78,18 @@ class EARunner(object):
             fitnesses = []
             done = False
             best = None
+
+            if self.problem.dynamic:
+                scenarios = [self.problem.generate_new_scenario() for _ in xrange(self.problem.num_scenarios)]
+
             for individual in self.population:
                 # Convert to phenotype
                 if individual.phenotype is None:
                     individual.phenotype = self.problem.geno_to_pheno(individual.genotype)
                 # Evaluate fitness
-                individual.fitness = self.problem.fitness(individual.phenotype)
+                individual.fitness = self.problem.fitness(individual.phenotype, scenarios)
 
-                if individual.fitness > self.threshold or individual.fitness == 1.0:
+                if self.threshold and individual.fitness >= self.threshold:
                     done = True
                     analyze_after_loop = False
                 total += individual.fitness
@@ -126,7 +138,6 @@ class EARunner(object):
                         children.append(child_2)
             children = self.mutate(children, self.mutation_rate, self.problem.mutate_genome_component, **kwargs)
             self.population = self.population + children
-
 
         self.problem.visualization(individual=bestest, board=best_board)
 

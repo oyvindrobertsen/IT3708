@@ -15,23 +15,24 @@ if __name__ == "__main__":
         p=0.33,
         t=60,
         activation_threshold=0.0,
-        minimum_activation=0.1,
-        static=False
+        minimum_activation=0.0,
+        static=True,
+        num_scenarios=5
     )
 
     # Configure the runner
     population_size = 200
     generations = 100
-    crossover_rate = 0.5
-    mutation_rate = 0.01
     adult_selection = generational_mixing
     adult_to_child_ratio = 0.5
     parent_selection = tournament_selection
     k = 8
     epsilon = 0.15
+    crossover_rate = 0.5
     crossover_function = one_point_crossover
+    mutation_rate = 0.01
     mutation_function = per_genome_component
-    threshold = 1.0
+    threshold = None
 
     runner1 = EARunner(
         problem=problem,

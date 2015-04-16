@@ -123,6 +123,9 @@ class Flatland(TorusWorld):
         poison_score = self.poison_eaten / ((self.poison_eaten + self.get_count_of_value(POISON)) or 1)
         return food_score - poison_score
 
+    def new_flatland_same_parameters(self):
+        return Flatland(dimensions=(self.w, self.h), f=self.f, p=self.p, t=self.t)
+
 
 class FlatlandProblem(Problem):
     def __init__(self, n_bits, layers, bias, f, p, t,
@@ -130,7 +133,8 @@ class FlatlandProblem(Problem):
                  static=True,
                  activation_function=sigmoid,
                  activation_threshold=0.0,
-                 minimum_activation=0.0
+                 minimum_activation=0.0,
+                 num_scenarios=1
     ):
         self.n_bits = n_bits
         self.layers = layers  # layer 0: [left food, fwd food, right food, left poison, fwd poison, right poison]
@@ -139,7 +143,12 @@ class FlatlandProblem(Problem):
         self.n_weights = sum(a * b for a, b in self.neural_network.get_matrix_dimensions())
         self.genotype_size = self.n_bits * self.n_weights
         self.static = static
+        self.num_scenarios = num_scenarios
         self.flatland = Flatland(dimensions, f, p, t, minimum_activation=minimum_activation)
+
+    @property
+    def dynamic(self):
+        return not self.static
 
     def create_initial_population(self, population_size):
         return [Individual(random_bitstring(self.genotype_size)) for _ in xrange(population_size)]
@@ -155,26 +164,27 @@ class FlatlandProblem(Problem):
     def mutate_genome_component(self, component):
         return 0 if int(component) else 1
 
-    def pre_generation_hook(self):
-        if not self.static:
-            self.flatland = Flatland(
-                dimensions=(self.flatland.w, self.flatland.h),
-                f=self.flatland.f,
-                p=self.flatland.p,
-                t=self.flatland.t
-            )
+    def generate_new_scenario(self):
+        return self.flatland.new_flatland_same_parameters()
 
-    def fitness(self, phenotype, board=None):
+    def fitness(self, phenotype, scenarios=None):
         # 1.: feed weights from phenotype into network
         # 2.: run timesteps with these weights
         # 3.: evaluate performance
 
-        flatland = deepcopy(board or self.flatland)
+        if not scenarios:
+            scenarios = [self.flatland]
+
+        scenarios = deepcopy(scenarios)
 
         self.neural_network.connections = phenotype
-        flatland.simulate(agent=self.neural_network)
 
-        return flatland.score
+        scores = []
+        for scenario in scenarios:
+            scenario.simulate(agent=self.neural_network)
+            scores.append(scenario.score)
+
+        return sum(scores) / len(scores)
 
     def visualization(self, **kwargs):
         individual = kwargs.get('individual')
@@ -192,6 +202,6 @@ class FlatlandProblem(Problem):
             flatland.poison_eaten,
             flatland.poison_eaten + flatland.get_count_of_value(POISON)
         ))
-        print('Fitness: ', self.fitness(individual.phenotype, board=board))
+        print('Fitness: ', self.fitness(individual.phenotype, scenarios=[board]))
 
         FlatlandGUI(deepcopy(board), actions)
