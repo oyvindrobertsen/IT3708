@@ -119,7 +119,47 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
 \begin{multicols}{2} % Two-column layout throughout the main article text
 
-    \section{Implementation}
+  \section{EA design}
+
+  \subsection{EA parameters}
+
+  Table~\ref{tbl:ea-parameters} gives an overview of the parameters with which we achieved the best performance.
+
+  \begin{table}[H]
+    \begin{tabular}{|l|l|}
+      \hline
+      Population size                   & 200                  \\ \hline
+      Generations                       & 100                  \\ \hline
+      Crossover rate                    & 0.5                  \\ \hline
+      Mutation rate                     & 0.01                 \\ \hline
+      Adult selection                   & Generational mixing  \\ \hline
+      Adult to child ratio              & 0.5                  \\ \hline
+      Parent selection                  & Tournament selection \\ \hline
+      Tournament selection bracket size & 8                    \\ \hline
+      Epsilon                           & 0.15                 \\ \hline
+      Crossover operator                & One point crossover  \\ \hline
+      Mutation operator                 & Per genome component \\ \hline
+    \end{tabular}
+    \caption{Table of EA parameters}
+    \label{tbl:ea-parameters}
+  \end{table}
+
+  \subsection{Fitness function}
+
+  \begin{gather*}
+    s_{food} = \frac{f_{eaten}}{f_{total}} \\[10pt]
+    s_{poison} = \frac{p_{eaten}}{p_{total}} \\[10pt]
+    f = s_{food} - s_{poison}
+  \end{gather*}
+
+  The equations above describe the fitness function we implemented.
+  The fitness $f$ is equal to the penalty for poison eaten $s_{poison}$ subtracted from the score rewarded for food eaten $s_{food}$.
+  The food reward and the poison penalty are the shares of total food/poison the agent has consumed.
+  In other words, a ``perfect'' agent is one that eats all the food on a board instance and avoids all poison.
+
+  \section{ANN implementation}
+
+  \subsection{}
 
 
 \end{multicols}
