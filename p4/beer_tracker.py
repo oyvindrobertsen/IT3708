@@ -1,8 +1,8 @@
 from __future__ import division, print_function
 from random import randint
 
+from enums import *
 
-DIRECTIONS = LEFT, RIGHT = -1, 1
 
 TRACKER_WIDTH = 5
 
@@ -36,6 +36,23 @@ class BeerTrackerAgent:
 
     def get_sensor_readings(self):
         return [col_no in self.world.active_object.columns for col_no in self.columns]
+
+    def interact(self, obj):
+        if obj.y_position > 0:
+            return
+
+        object_cols = set(obj.columns)
+        agent_cols = set(self.columns)
+
+        if object_cols.issubset(agent_cols):
+            self.capture(obj)
+            return CAPTURE
+        elif object_cols.intersection(agent_cols):
+            self.fail(obj)
+            return FAIL
+        else:
+            self.avoidance(obj)
+            return AVOIDANCE
 
     def capture(self, obj):
         print('CAPTURE', obj.width)
@@ -78,20 +95,19 @@ class BeerTrackerWorld:
 
     def tick(self):
         if self.active_object.y_position == 0:
-            print(self.agent.get_sensor_readings())
-            object_cols = set(self.active_object.columns)
-            agent_cols = set(self.agent.columns)
-            if object_cols.issubset(agent_cols):
-                self.agent.capture(self.active_object)
-            elif object_cols.intersection(agent_cols):
-                self.agent.fail(self.active_object)
-            else:
-                self.agent.avoidance(self.active_object)
-
+            self.agent.interact(self.active_object)
             self.new_falling_object()
             return
 
         self.active_object.y_position -= 1
+
+    def perform_action(self, action_tuple):
+        action, param = action_tuple
+
+        if action in DIRECTIONS:
+            self.agent.move(action, param)
+        elif action == PULL:
+            self.pull()
 
     def pull(self):
         self.active_object.y_position = 0
@@ -113,21 +129,3 @@ class BeerTrackerWorld:
         for y in xrange(self.width):
             print('^' if y in self.agent.columns else ' ', sep='', end='')
         print('   0')
-
-
-if __name__ == "__main__":
-    btw = BeerTrackerWorld(30, 15, wrap=True)
-    btw.new_falling_object()
-    btw.terminal_print()
-    btw.agent.move(LEFT, 4)
-    btw.tick()
-    btw.agent.move(LEFT, 4)
-    btw.tick()
-    btw.agent.move(LEFT, 4)
-    btw.tick()
-    btw.agent.move(LEFT, 4)
-    btw.tick()
-    btw.pull()
-    btw.terminal_print()
-    btw.tick()
-    print(btw.agent.get_sensor_readings())
