@@ -47,10 +47,6 @@
 \usepackage{hyperref} % For hyperlinks in the PDF
 \usepackage{multirow}
 
-\usepackage{syntax}
-\setlength{\grammarparsep}{5pt plus 1pt minus 1pt} % increase separation between rules
-\setlength{\grammarindent}{6em} % increase separation between LHS/RHS 
-
 \usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
 \usepackage{paralist} % Used for the compactitem environment which makes bullet points with less space between them
 
@@ -224,9 +220,9 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
   As we had no prior experience in designing ANNs, our approach was slightly unguided.
   We started out using 8-bit weights, and a single hidden layer in addition to the design depicted in figure~\ref{fig:ann-layout}.
-  Through several evolutionary runs, with varying parameters used for the runs (increasing selection pressure), the best individuals using this design achieved fitness values between $0.45$ and $0.7$.
+  Through several evolutionary runs, with varying parameters used for the runs (increasing selection pressure), the best individuals using this design achieved fitness values between $0.35$ and $0.6$.
   Note that the codomain of our fitness function is $[-1, 1]$.
-  While this is not horrible performance, we noticed that these agents decreased their score by making stupid choices, not by being placed in situations in which they would have no other choice than to eat poison.
+  While these values don't m, we noticed that these agents decreased their score by making stupid choices, not by being placed in situations in which they would have no other choice than to eat poison.
 
   As the desired agent functionality is very simple, we started gradually simplifying our network.
   Removing the hidden layer yielded positive results, so on a whim, we decided to run a simulation with binary weights.
@@ -234,8 +230,37 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   We were surprised at first, as our first run with this weight-encoding was also the first run in which an agent achieved a fitness of $1.0$.
 
   However, after giving it some thought, we realised that this design restricted the search space for our EA, while still allowing for an optimal agent function to be encoded in the weights.
+
+
+  \section{EA performance}
+
+  \subsection{Static, single scenario}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/static_1.png}
+    \caption{Fitness plot for static, single scenario run.} \label{fig:static-single}
+  \end{figure}
   
-  
+  \subsection{Static, five scenarios}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/static_5.png}
+    \caption{Fitness plot for static, five scenario per generation run.} \label{fig:static-single}
+  \end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/dynamic_1.png}
+    \caption{Fitness plot for dynamic, single scenario run.} \label{fig:static-single}
+  \end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/dynamic_5.png}
+    \caption{Fitness plot for dynamic, five scenarios per generation.} \label{fig:static-single}
+  \end{figure}
 
 \end{multicols}
 
