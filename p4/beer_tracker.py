@@ -1,15 +1,31 @@
 from __future__ import division, print_function
+from copy import deepcopy
 from random import randint
+from math import ceil
 
+from ctrnn.neural_network import NeuralNetwork, Neuron as N, BiasNeuron as B
+from ea.ea import Individual
+from ea.problems import Problem
 from enums import *
+from utils import random_bitstring, normalize_bitstring, matrix_fit
 
+
+TIMESTEPS = 600
 
 TRACKER_WIDTH = 5
 
 
 class BeerTrackerAgent:
-    def __init__(self, world):
+    def __init__(self, world, brain):
         self.world = world
+        self.brain = brain
+        self.leftmost = 0
+
+        self.points = 0.0
+
+        self.actions = []
+
+    def reset_position(self):
         self.leftmost = (self.world.width // 2) - (TRACKER_WIDTH // 2)
 
     @property
@@ -19,12 +35,15 @@ class BeerTrackerAgent:
     @property
     def columns(self):
         if self.rightmost < self.leftmost:
-            return range(self.leftmost, self.world.width) + range(0, self.rightmost)
+            return range(self.leftmost, self.world.width) + range(0, self.rightmost + 1)
 
         return range(self.leftmost, self.rightmost + 1)
 
     def move(self, direction, steps):
+        steps = int(steps)
         self.leftmost += direction * steps
+
+        self.actions.append(direction * steps)
 
         if self.world.wrap:
             self.leftmost %= self.world.width
@@ -55,13 +74,23 @@ class BeerTrackerAgent:
             return AVOIDANCE
 
     def capture(self, obj):
-        print('CAPTURE', obj.width)
+        if obj.width >= 5:
+            self.points -= 1.0
+        else:
+            self.points += 1.0
 
     def avoidance(self, obj):
-        print('AVOIDANCE', obj.width)
+        if obj.width >= 5:
+            self.points += 1.0
+        else:
+            self.points -= 1.0
 
     def fail(self, obj):
-        print('FAIL', obj.width)
+        self.points -= 1.0
+
+    @property
+    def score(self):
+        return self.points / self.world.max_points
 
 
 class BeerTrackerObject:
@@ -85,13 +114,17 @@ class BeerTrackerWorld:
         self.height = height
         self.wrap = wrap
 
-        self.agent = BeerTrackerAgent(world=self)
+        self.agent = None
         self.active_object = None
+
+        self.max_points = 0
 
     def new_falling_object(self):
         width = randint(1, 6)
         left = randint(0, self.width - width)
         self.active_object = BeerTrackerObject(left, self.height, width)
+
+        self.max_points += 1
 
     def tick(self):
         if self.active_object.y_position == 0:
@@ -101,16 +134,23 @@ class BeerTrackerWorld:
 
         self.active_object.y_position -= 1
 
-    def perform_action(self, action_tuple):
-        action, param = action_tuple
-
-        if action in DIRECTIONS:
-            self.agent.move(action, param)
-        elif action == PULL:
-            self.pull()
-
     def pull(self):
         self.active_object.y_position = 0
+
+    def simulate(self, agent):
+        self.agent = agent
+
+        self.new_falling_object()
+
+        for _ in xrange(TIMESTEPS):
+            out = self.agent.brain.propagate_input(self.agent.get_sensor_readings())
+
+            if out[0] > out[1]:
+                self.agent.move(LEFT, ceil(out[0] * 4))
+            else:
+                self.agent.move(RIGHT, ceil(out[1] * 4))
+
+            self.tick()
 
     def terminal_print(self):
         for y in xrange(self.height, 0, -1):
@@ -129,3 +169,51 @@ class BeerTrackerWorld:
         for y in xrange(self.width):
             print('^' if y in self.agent.columns else ' ', sep='', end='')
         print('   0')
+
+
+class BeerTrackerProblem(Problem):
+    def __init__(self, n_bits):
+        self.world = BeerTrackerWorld(30, 15, wrap=True)
+        self.neural_network = NeuralNetwork((
+            (N(), N(), N(), N(), N(), B(1.0)),
+            (N(), N(), B(1.0)),
+            (N(), N())
+        ))
+
+        self.n_bits = n_bits
+
+        p = self.neural_network.get_phenotype_size()
+        self.genotype_size = self.n_bits * (
+            sum(a * b for a, b in p['inter']) + sum(a * b for a, b in p['cross']) + 2 * p['neurons']
+        )
+
+        self.population = self.create_initial_population(10)
+
+    def create_initial_population(self, population_size):
+        return [Individual(random_bitstring(self.genotype_size)) for _ in xrange(population_size)]
+
+    def geno_to_pheno(self, genotype):
+        weight = lambda i: normalize_bitstring(genotype[i:i + self.n_bits])
+        values = [weight(i) for i in xrange(0, self.genotype_size, self.n_bits)]
+
+        ps = self.neural_network.get_phenotype_size()
+        d = {}
+        d['cross'], values = matrix_fit(values, ps['cross'], map=lambda x: -5.0 + 10.0 * x)
+        d['inter'], values = matrix_fit(values, ps['inter'], map=lambda x: -5.0 + 10.0 * x)
+        d['gains'] = map(lambda x: 1.0 + 4.0 * x, values[:ps['neurons']])
+        d['ts'] = map(lambda x: 1.0 + x, values[ps['neurons']:])
+
+        return d
+
+    def mutate_genome_component(self, component):
+        return 0 if int(component) else 1
+
+    def fitness(self, phenotype):
+        world = deepcopy(self.world)
+        brain = deepcopy(self.neural_network)
+        brain.assign_phenotype(phenotype)
+
+        agent = BeerTrackerAgent(world, brain)
+        world.simulate(agent)
+
+        return agent.score

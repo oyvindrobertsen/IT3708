@@ -28,7 +28,7 @@ def normalize_bitstring(bitstring):
     return int(bitstring, base=2) / (2 ** len(bitstring) - 1)
 
 
-def matrix_fit(array_data, matrix_dimensions):
+def matrix_fit(array_data, matrix_dimensions, map=None):
     """
     fills the matrices with data from the 1D array
     """
@@ -36,7 +36,11 @@ def matrix_fit(array_data, matrix_dimensions):
     for matrix in matrices:
         for i, row in enumerate(matrix):
             for j, col in enumerate(row):
-                matrix[i][j] = array_data.pop()
+                value = array_data.pop()
+                if map:
+                    value = map(value)
+
+                matrix[i][j] = value
 
     return matrices, array_data
 
