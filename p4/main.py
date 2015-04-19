@@ -6,14 +6,12 @@ from ea.ea import EARunner
 from ea.problems.utils import *
 
 if __name__ == "__main__":
-    layers = [6, 3]
-    bias = {0: [1.0]}
     problem = BeerTrackerProblem(
         world=BeerTrackerWorld(30, 15, wrap=True),
         neural_network=NeuralNetwork((
             (N(), N(), N(), N(), N(), B(1.0)),
             (N(), N(), B(1.0)),
-            (N(), N())
+            (N(), N(), N())
         )),
         n_bits=4
     )

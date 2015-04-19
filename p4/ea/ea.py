@@ -64,8 +64,7 @@ class EARunner(object):
         self.population = self.problem.create_initial_population(self.population_size - self.number_of_adults)
         # Start evolution
         analyze_after_loop = True
-        bestest = None
-        best_board = None
+        last_best = None
 
         for generation in range(self.generations):
             self.problem.pre_generation_hook()
@@ -76,7 +75,6 @@ class EARunner(object):
             generation_max_phenotype = None
             fitnesses = []
             done = False
-            best = None
 
             for individual in self.population:
                 # Convert to phenotype
@@ -91,12 +89,9 @@ class EARunner(object):
                 total += individual.fitness
                 fitnesses.append(individual.fitness)
                 if individual.fitness > generation_max_fitness:
-                    best = individual
+                    last_best = individual
                     generation_max_fitness = individual.fitness
                     generation_max_phenotype = individual.phenotype
-
-            if bestest is None or best.fitness > bestest.fitness:
-                bestest, best_board = deepcopy(best), deepcopy(self.problem.world)
 
             avg = total / len(self.population)
             self.averages.append(avg)
@@ -135,7 +130,7 @@ class EARunner(object):
             children = self.mutate(children, self.mutation_rate, self.problem.mutate_genome_component, **kwargs)
             self.population = self.population + children
 
-        self.problem.visualization(individual=bestest, board=best_board)
+        self.problem.visualization(phenotype=last_best.phenotype)
 
         # Analyze last generated generation if we didn't find a solution
         if analyze_after_loop:
@@ -166,7 +161,7 @@ class EARunner(object):
             self.maximums.append(generation_max_fitness)
             std_dev = np.std(np.array(fitnesses))
             self.std_devs.append(std_dev)
-            log_generation(len(self.averages) - 1, generation_max_fitness, avg, std_dev, generation_max_phenotype)
+            log_generation(len(self.averages) - 1, generation_max_fitness, avg, std_dev)
 
     def plot(self):
         plt.title(self.problem)
