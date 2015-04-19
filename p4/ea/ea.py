@@ -8,7 +8,12 @@ from problems.utils import *
 
 
 def log_generation(generation_number, *stuff):
-    print('G{:<3}:\t{}'.format(generation_number, ',\t'.join(str(x) for x in stuff)))
+    print(
+        'G{:<3}:\t{}'.format(
+            generation_number,
+            ',\t'.join(str(round(x, 2) if isinstance(x, float) else x) for x in stuff)
+        )
+    )
 
 
 class Individual(object):

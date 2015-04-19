@@ -62,6 +62,12 @@ class NeuralNetwork:
         )
 
     def get_phenotype_size(self):
+        """
+        Return the dimensions required to produce a phenotype.
+        Cross-layer connections are NxM matrices.
+        Inter-layer connections are NxN matrices.
+        Also returns the number of regular neurons that need to be assigned t and gain values.
+        """
         return {
             'cross': [
                 (sum(self.neuron_count(i)), self.neuron_count(i + 1)[0]) for i in xrange(len(self.layers) - 1)
