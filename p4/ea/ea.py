@@ -71,7 +71,7 @@ class EARunner(object):
             # Genotype to phenotype conversion
             # Analyzing population of this generation, logging
             total = 0
-            generation_max_fitness = -1
+            generation_max_fitness = -100
             generation_max_phenotype = None
             fitnesses = []
             done = False

@@ -14,10 +14,14 @@ DANGER_COLOR = (255, 0, 0)
 AGENT_COLOR = (125, 0, 255)
 PULLING_COLOR = (0, 255, 0)
 
-SLEEP_TIME_DEFAULT = 0.5
-SLEEP_TIME_DELTA = 0.1
+SLEEP_TIME_DEFAULT = 0.2
+SLEEP_TIME_DELTA = 0.05
 
 TITLE = 'Evolved neural network for solving the Beer Tracker problem'
+
+
+class FinishSimulationSignal(Exception):
+    pass
 
 
 class BeerTrackerGUI:
@@ -35,32 +39,33 @@ class BeerTrackerGUI:
         self.window = pygame.display.set_mode((self.window_w, self.window_h))
         self.font = pygame.font.SysFont("sans-serif", 30)
 
-        def simulation_gui(**kwargs):
-            self.draw_state(**kwargs)
-            sleep(self.sleep_time)
+        world.simulate(self.agent, after_tick=self.simulation_gui)
+        self.draw_state(tick=TIMESTEPS)
 
-            while self.paused:
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
-                            self.unpause()
-                        elif event.key == pygame.QUIT or event.key == pygame.K_q:
-                            return
+    def simulation_gui(self, **kwargs):
+        self.draw_state(**kwargs)
+        sleep(self.sleep_time)
 
+        while self.paused:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.QUIT or event.key == pygame.K_q:
-                        return
-                    elif event.key == pygame.K_SPACE:
-                        self.pause()
-                    elif event.key == pygame.K_PLUS:
-                        # go faster
-                        sleep_time = max(self.sleep_time - SLEEP_TIME_DELTA, SLEEP_TIME_DELTA)
-                    elif event.key == pygame.K_MINUS:
-                        # go slower
-                        self.sleep_time += SLEEP_TIME_DELTA
+                    if event.key == pygame.K_SPACE:
+                        self.unpause()
+                    elif event.key == pygame.QUIT or event.key == pygame.K_q:
+                        raise FinishSimulationSignal()
 
-        world.simulate(self.agent, after_tick=simulation_gui)
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.QUIT or event.key == pygame.K_q:
+                    raise FinishSimulationSignal()
+                elif event.key == pygame.K_SPACE:
+                    self.pause()
+                elif event.key == pygame.K_PLUS:
+                    # go faster
+                    sleep_time = max(self.sleep_time - SLEEP_TIME_DELTA, SLEEP_TIME_DELTA)
+                elif event.key == pygame.K_MINUS:
+                    # go slower
+                    self.sleep_time += SLEEP_TIME_DELTA
 
     def draw_state(self, **kwargs):
         self.window.fill(BACKGROUND)

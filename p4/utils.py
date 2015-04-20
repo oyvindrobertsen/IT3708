@@ -47,3 +47,7 @@ def matrix_fit(array_data, matrix_dimensions, map=None):
 
 def tuplize(value, times=2):
     return tuple(value for _ in xrange(times))
+
+
+def scale(value, lo, hi):
+    return lo + (hi - lo) * value

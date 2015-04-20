@@ -13,7 +13,7 @@ if __name__ == "__main__":
             (N(), N(), B(1.0)),
             (N(), N())
         )),
-        n_bits=4
+        n_bits=8
     )
 
     # Configure the runner

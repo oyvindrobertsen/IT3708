@@ -5,8 +5,8 @@ from random import randint
 from ea.ea import Individual
 from ea.problems import Problem
 from enums import *
-from gui import BeerTrackerGUI
-from utils import random_bitstring, normalize_bitstring, matrix_fit
+from gui import BeerTrackerGUI, FinishSimulationSignal
+from utils import random_bitstring, normalize_bitstring, matrix_fit, scale
 
 
 class BeerTrackerAgent(object):
@@ -19,6 +19,8 @@ class BeerTrackerAgent(object):
         self.points = 0
 
         self.actions = []
+
+        self.has_pull_option = self.brain.neuron_count(-1)[0] == 3
 
     def reset_position(self):
         self.leftmost = (self.world.width // 2) - (TRACKER_WIDTH // 2)
@@ -50,7 +52,7 @@ class BeerTrackerAgent(object):
         elif self.leftmost < 0:
             self.leftmost = 0
         elif self.rightmost >= self.world.width:
-            self.leftmost = self.world.width - TRACKER_WIDTH - 1
+            self.leftmost = self.world.width - TRACKER_WIDTH
 
     def get_sensor_readings(self):
         return [col_no in self.world.active_object.columns for col_no in self.columns]
@@ -103,7 +105,7 @@ class BeerTrackerAgent(object):
 
 class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):
     def get_sensor_readings(self):
-        return super(BeerTrackerAgentWithWallSensors, self).get_sensor_readings()\
+        return super(BeerTrackerAgentWithWallSensors, self).get_sensor_readings() \
                + [self.leftmost <= 0, self.rightmost >= (self.world.width - 1)]
 
 
@@ -160,7 +162,10 @@ class BeerTrackerWorld(object):
             self.agent.act()
             self.tick()
             if after_tick:
-                after_tick(tick=i)
+                try:
+                    after_tick(tick=i)
+                except FinishSimulationSignal:
+                    after_tick = None
 
     def terminal_print(self):
         for y in xrange(self.height, 0, -1):
@@ -182,10 +187,20 @@ class BeerTrackerWorld(object):
 
 
 class BeerTrackerProblem(Problem):
-    def __init__(self, world, neural_network, n_bits):
+    def __init__(self, world, neural_network, n_bits,
+                 weight_range=(-5.0, 5.0),
+                 bias_weight_range=(-10.0, 0.0),
+                 gains_range=(1.0, 5.0),
+                 ts_range=(1.0, 2.0)
+    ):
         self.world = world
         self.neural_network = neural_network
         self.n_bits = n_bits
+
+        self.weight_range = weight_range
+        self.bias_weight_range = bias_weight_range
+        self.gains_range = gains_range
+        self.ts_range = ts_range
 
         p = self.neural_network.get_phenotype_size()
         self.genotype_size = self.n_bits * (
@@ -201,8 +216,10 @@ class BeerTrackerProblem(Problem):
 
         ps = self.neural_network.get_phenotype_size()
         d = {}
+
         d['cross'], values = matrix_fit(values, ps['cross'], map=lambda x: -5.0 + 10.0 * x)
         d['inter'], values = matrix_fit(values, ps['inter'], map=lambda x: -5.0 + 10.0 * x)
+
         d['gains'] = map(lambda x: 1.0 + 4.0 * x, values[:ps['neurons']])
         d['ts'] = map(lambda x: 1.0 + x, values[ps['neurons']:])
 
