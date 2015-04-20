@@ -241,6 +241,12 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \includegraphics[width=\linewidth]{images/static_1.png}
     \caption{Fitness plot for static, single scenario run.} \label{fig:static-single}
   \end{figure}
+
+  While no optimally performing agent was found, the best agent ate no poison and left only one piece of food inthe static scenario.
+  This resulted in a fitness value of \textasciitilde $0.89$.
+  Testing that same agent on a freshly generated scenario yielded a fitness value of \textasciitilde $0.44$.
+  Since we are ``training'' the network only on a single scenario, it is to be expected that it will not be a good general solution.
+  This explaines the drop in performance on the new scenario.
   
   \subsection{Static, five scenarios}
 
@@ -250,17 +256,36 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \caption{Fitness plot for static, five scenario per generation run.} \label{fig:static-single}
   \end{figure}
 
+  Testing each generation on a (static) set of five scenarios does not yield a higher top fitness. (\textasciitilde $0.85$)
+  Applying the best individual on a new scenario resulted in a fitness of \textasciitilde $0.77$, making this a slightly better strategy for breeding a general solution to the flatland-problem.
+  Since the population is trained on the same set of scenarios each generation however, the generality of the resulting network depends on to which degree the five scenarios represent the breadth of the problem domain.
+
+  \subsection{Dynamic, single scenario}
+  
   \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{images/dynamic_1.png}
     \caption{Fitness plot for dynamic, single scenario run.} \label{fig:static-single}
   \end{figure}
 
+  As we expected, the dynamic, single scenario run has a very fluctuating finess plot.
+  The ``environment'' changes too much for the selection pressure applied throughout the EA run have much value.
+
+  The best performing individual scored a fitness value of \textasciitilde $0.98$ during the run, and \textasciitilde $0.57$ when retested on a new scenarios.
+
+  \subsection{Dynamic, five scenarios}
+  
   \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{images/dynamic_5.png}
     \caption{Fitness plot for dynamic, five scenarios per generation.} \label{fig:static-single}
   \end{figure}
+
+  As we can see from the figure, using a dynamic set of five scenarios yields a slightly less chaotic fitness plot.
+  The best individual from this run score a fitness value of \textasciitilde $0.86$.
+  Retesting on a fresh board resulted in \textasciitilde $0.82$
+
+  This is the best strategy for breeding agents that perform well in any instance of a flatland-problem.
 
 \end{multicols}
 
