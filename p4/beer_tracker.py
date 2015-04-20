@@ -9,7 +9,7 @@ from gui import BeerTrackerGUI
 from utils import random_bitstring, normalize_bitstring, matrix_fit
 
 
-class BeerTrackerAgent:
+class BeerTrackerAgent(object):
     def __init__(self, world, brain):
         self.world = world
         self.brain = brain
@@ -25,7 +25,12 @@ class BeerTrackerAgent:
 
     @property
     def rightmost(self):
-        return (self.leftmost + TRACKER_WIDTH - 1) % self.world.width
+        r = self.leftmost + TRACKER_WIDTH - 1
+
+        if self.world.wrap:
+            return r % self.world.width
+
+        return r
 
     @property
     def columns(self):
@@ -42,11 +47,10 @@ class BeerTrackerAgent:
 
         if self.world.wrap:
             self.leftmost %= self.world.width
-        else:
-            if self.leftmost < 0:
-                self.leftmost = 0
-            elif self.rightmost >= self.world.width:
-                self.leftmost -= (self.rightmost - self.world.width)
+        elif self.leftmost < 0:
+            self.leftmost = 0
+        elif self.rightmost >= self.world.width:
+            self.leftmost = self.world.width - TRACKER_WIDTH - 1
 
     def get_sensor_readings(self):
         return [col_no in self.world.active_object.columns for col_no in self.columns]
@@ -97,7 +101,13 @@ class BeerTrackerAgent:
         self.points -= 1
 
 
-class BeerTrackerObject:
+class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):
+    def get_sensor_readings(self):
+        return super(BeerTrackerAgentWithWallSensors, self).get_sensor_readings()\
+               + [self.leftmost <= 0, self.rightmost >= (self.world.width - 1)]
+
+
+class BeerTrackerObject(object):
     def __init__(self, left, y_position, width):
         self.leftmost = left
         self.y_position = y_position
@@ -112,11 +122,12 @@ class BeerTrackerObject:
         return range(self.leftmost, self.rightmost + 1)
 
 
-class BeerTrackerWorld:
+class BeerTrackerWorld(object):
     def __init__(self, width, height, wrap=True):
         self.width = width
         self.height = height
         self.wrap = wrap
+        self.agent_class = BeerTrackerAgent if self.wrap else BeerTrackerAgentWithWallSensors
 
         self.agent = None
         self.active_object = None
@@ -205,7 +216,7 @@ class BeerTrackerProblem(Problem):
         brain = deepcopy(self.neural_network)
         brain.assign_phenotype(phenotype)
 
-        agent = BeerTrackerAgent(world, brain)
+        agent = world.agent_class(world, brain)
         world.simulate(agent)
 
         return agent.points
@@ -217,7 +228,7 @@ class BeerTrackerProblem(Problem):
 
         BeerTrackerGUI(
             world=self.world,
-            agent=BeerTrackerAgent(
+            agent=self.world.agent_class(
                 world=self.world,
                 brain=network
             )

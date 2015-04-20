@@ -104,12 +104,7 @@ def one_point_crossover(parent_1, parent_2, **kwargs):
 def braid(parent_1, parent_2, **kwargs):
     from ea.ea import Individual
 
-    child_genotype = []
-    for i in range(len(parent_1.genotype)):
-        if i % 2 == 0:
-            child_genotype.append(parent_2.genotype[i])
-        else:
-            child_genotype.append(parent_1.genotype[i])
+    child_genotype = ''.join((parent_1 if i % 2 else parent_2).genotype[i] for i in range(len(parent_1.genotype)))
     return Individual(child_genotype)
 
 

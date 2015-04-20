@@ -23,9 +23,9 @@ if __name__ == "__main__":
     adult_to_child_ratio = 0.5
     parent_selection = tournament_selection
     k = 8
-    epsilon = 0.15
+    epsilon = 0.05
     crossover_rate = 0.5
-    crossover_function = one_point_crossover
+    crossover_function = braid
     mutation_rate = 0.01
     mutation_function = per_genome_component
     threshold = None
