@@ -114,7 +114,40 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
 \begin{multicols}{2} % Two-column layout throughout the main article text
 
-    sup?
+    \section{Implementation}
+    A phenotype is the representation of the weights of a CTRNN.
+    A CTRNN requires more weights than the simple ANN from project 3.
+    In addition to matrices that represent arcs crossing between layers,
+    there are also internal arcs between the neurons of a layer,
+    and each neuron requires two additional paramenters, the \textit{gain} and \textit{time constant}.
+
+    The genotype is a bitstring of size $8 * \text{number of weights}$.
+    The conversion to phenotype takes each 8 bit sequence and interprets it as a floating point value between $0.0$ and $1.0$.
+    These values are then fitted into matrices that represent the arc weights,
+    or assigned as \texttt{g} or \texttt{t} values of neurons,
+    and scaled and adjusted to an appropriate range.
+
+    The CTRNN implementation is a modified version of the ANN implementation from project 3.
+    Neurons are no longer only simple numerical values where input is equal to output,
+    but are objects that maintain state and computes output based on input and state.
+
+    At each tick of the simulation the input nodes get either $1$ or $0$ from the sensors.
+    They then output some value computed with the input, the previous state, the \textit{gain} and \textit{time constant} parameters and the sigmoid function.
+    These values are propagated along the weighted arcs to the next layer,
+    where the sum of the inputs to each neuron goes through the same calculation.
+    In the CTRNN there are also internal arcs in each non-input layer,
+    including arcs from the neuron to itself.
+    These are also part of the sum of inputs.
+
+    Once the sensory inputs have propagated their way through the network and the final layer has new output values,
+    the agent object uses these values to make a decision about how to act in the Beer Tracker World.
+    If the left neuron has a higher value than the right neuron the agent will move left, and vice versa.
+    The magnitude of the output decides the magnitude of the movement,
+    so an output near $1.0$ means the agent takes 4 steps and an output near $0.0$ means it takes no steps at all.
+
+    \section{Performance}
+
+    \section{Analysis}
 
 \end{multicols}
 

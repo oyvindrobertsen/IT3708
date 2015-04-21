@@ -1,9 +1,12 @@
 .PHONY: all
+
+TITLE = mathiabo_oyvinrob_p4
+
 all:
-	pdflatex mathiabo_oyvinrob_p3.tex
-	bibtex mathiabo_oyvinrob_p3
-	pdflatex mathiabo_oyvinrob_p3.tex
-	pdflatex mathiabo_oyvinrob_p3.tex
+	pdflatex ${TITLE}.tex
+	bibtex ${TITLE}
+	pdflatex ${TITLE}.tex
+	pdflatex ${TITLE}.tex
 
 .PHONY: clean
 clean:
