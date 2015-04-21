@@ -47,10 +47,6 @@
 \usepackage{hyperref} % For hyperlinks in the PDF
 \usepackage{multirow}
 
-\usepackage{syntax}
-\setlength{\grammarparsep}{5pt plus 1pt minus 1pt} % increase separation between rules
-\setlength{\grammarindent}{6em} % increase separation between LHS/RHS 
-
 \usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
 \usepackage{paralist} % Used for the compactitem environment which makes bullet points with less space between them
 
@@ -61,9 +57,8 @@
 
 \usepackage{graphicx}
 
-\usepackage{pgf}
 \usepackage{tikz}
-\usetikzlibrary{arrows,automata, shapes, positioning, calc}
+
 
 \newcommand{\rparen}{)}
 
@@ -119,8 +114,178 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
 \begin{multicols}{2} % Two-column layout throughout the main article text
 
-    \section{Implementation}
+  \section{EA design}
 
+  \subsection{EA parameters}
+
+  Table~\ref{tbl:ea-parameters} gives an overview of the parameters with which we achieved the best performance.
+
+  \begin{table}[H]
+    \begin{tabular}{|l|l|}
+      \hline
+      Population size                   & 200                  \\ \hline
+      Generations                       & 100                  \\ \hline
+      Crossover rate                    & 0.5                  \\ \hline
+      Mutation rate                     & 0.01                 \\ \hline
+      Adult selection                   & Generational mixing  \\ \hline
+      Adult to child ratio              & 0.5                  \\ \hline
+      Parent selection                  & Tournament selection \\ \hline
+      Tournament selection bracket size & 8                    \\ \hline
+      Epsilon                           & 0.15                 \\ \hline
+      Crossover operator                & One point crossover  \\ \hline
+      Mutation operator                 & Per genome component \\ \hline
+    \end{tabular}
+    \caption{Table of EA parameters}
+    \label{tbl:ea-parameters}
+  \end{table}
+
+  \subsection{Fitness function}
+
+  \begin{gather*}
+    s_{food} = \frac{f_{eaten}}{f_{total}} \\[10pt]
+    s_{poison} = \frac{p_{eaten}}{p_{total}} \\[10pt]
+    f = s_{food} - s_{poison}
+  \end{gather*}
+
+  The equations above describe the fitness function we implemented.
+  The fitness $f$ is equal to the penalty for poison eaten $s_{poison}$ subtracted from the score rewarded for food eaten $s_{food}$.
+  The food reward and the poison penalty are the shares of total food/poison the agent has consumed.
+  In other words, a ``perfect'' agent is one that eats all the food on a board instance and avoids all poison.
+
+  \section{ANN implementation}
+
+  \subsection{ANN design}
+
+  \def\layersep{2.0cm}
+  
+
+  \begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+      \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+      \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
+      \tikzstyle{input neuron}=[neuron, fill=green!50];
+      \tikzstyle{output neuron}=[neuron, fill=red!50];
+      \tikzstyle{hidden neuron}=[neuron, fill=blue!50];
+      \tikzstyle{annot} = [text width=4em, text centered]
+
+      % Draw the input layer nodes
+      \foreach \name / \y in {1,...,6}
+      % This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+      \node[input neuron, pin=left:Input \#\y] (I-\name) at (0,-\y) {};
+
+      % Draw bias node
+      \node[neuron, pin={[pin edge={<-}]above:Bias}, right of=I-1] (B) {};
+      
+      % Draw the hidden layer nodes
+      \foreach \name / \y in {1,...,3}
+      \path node[output neuron, pin={[pin edge={->}]right:Output \#\y}, right of=O-\name] (O-\name) at (\layersep,-1.75*\y cm) {};
+
+      % Draw the output layer node
+      %\node[output neuron,pin={[pin edge={->}]right:Output}, right of=I-3] (O) {};
+
+      % Connect every node in the input layer with every node in the
+      % hidden layer.
+      \foreach \source in {1,...,6}
+      \foreach \dest in {1,...,3}
+      \path (I-\source) edge (O-\dest);
+
+      % Connect the bias node to all output nodes
+      \foreach \dest in {1,...,3}
+      \path (B) edge (O-\dest);
+
+      % Connect every node in the input layer with the output layer
+      %\foreach \source in {1,...,5}
+      %\path (I-\source) edge (O-);
+
+      % Annotate the layers
+      %\node[annot,above of=H-1, node distance=1cm] (hl) {Hidden layer};
+      \node[annot,above of=O-1] (Ao) {Output layer};
+      \node[annot, left of=Ao, node distance=4cm] {Input layer};
+    \end{tikzpicture}
+
+    \caption{ANN layout} \label{fig:ann-layout}
+  \end{figure}
+
+  Figure~\ref{fig:ann-layout} shows the ANN design with which we achieved the best results with.
+  There are six input neurons, three representing the food sensors and three representing the poison sensors.
+  Each input neuron is connected to each of the output neurons.
+  The three outputs control the agents movement.
+  We used a single bias node, outputting $1.0$ to the output layer.
+
+  We used a standard sigmoid for our activation function.
+  To some initial surprise on our part, we achieved the most consistent results using binary weights.
+
+  \subsection{Design process}
+
+  As we had no prior experience in designing ANNs, our approach was slightly unguided.
+  We started out using 8-bit weights, and a single hidden layer in addition to the design depicted in figure~\ref{fig:ann-layout}.
+  Through several evolutionary runs, with varying parameters used for the runs (increasing selection pressure), the best individuals using this design achieved fitness values between $0.35$ and $0.6$.
+  Note that the codomain of our fitness function is $[-1, 1]$.
+  While these values don't m, we noticed that these agents decreased their score by making stupid choices, not by being placed in situations in which they would have no other choice than to eat poison.
+
+  As the desired agent functionality is very simple, we started gradually simplifying our network.
+  Removing the hidden layer yielded positive results, so on a whim, we decided to run a simulation with binary weights.
+  (Encoding weights as 1-bit integers in our genomes that is.)
+  We were surprised at first, as our first run with this weight-encoding was also the first run in which an agent achieved a fitness of $1.0$.
+
+  However, after giving it some thought, we realised that this design restricted the search space for our EA, while still allowing for an optimal agent function to be encoded in the weights.
+
+
+  \section{EA performance}
+
+  \subsection{Static, single scenario}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/static_1.png}
+    \caption{Fitness plot for static, single scenario run.} \label{fig:static-single}
+  \end{figure}
+
+  While no optimally performing agent was found, the best agent ate no poison and left only one piece of food inthe static scenario.
+  This resulted in a fitness value of \textasciitilde $0.89$.
+  Testing that same agent on a freshly generated scenario yielded a fitness value of \textasciitilde $0.44$.
+  Since we are ``training'' the network only on a single scenario, it is to be expected that it will not be a good general solution.
+  This explaines the drop in performance on the new scenario.
+  
+  \subsection{Static, five scenarios}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/static_5.png}
+    \caption{Fitness plot for static, five scenario per generation run.} \label{fig:static-single}
+  \end{figure}
+
+  Testing each generation on a (static) set of five scenarios does not yield a higher top fitness. (\textasciitilde $0.85$)
+  Applying the best individual on a new scenario resulted in a fitness of \textasciitilde $0.77$, making this a slightly better strategy for breeding a general solution to the flatland-problem.
+  Since the population is trained on the same set of scenarios each generation however, the generality of the resulting network depends on to which degree the five scenarios represent the breadth of the problem domain.
+
+  \subsection{Dynamic, single scenario}
+  
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/dynamic_1.png}
+    \caption{Fitness plot for dynamic, single scenario run.} \label{fig:static-single}
+  \end{figure}
+
+  As we expected, the dynamic, single scenario run has a very fluctuating finess plot.
+  The ``environment'' changes too much for the selection pressure applied throughout the EA run have much value.
+
+  The best performing individual scored a fitness value of \textasciitilde $0.98$ during the run, and \textasciitilde $0.57$ when retested on a new scenarios.
+
+  \subsection{Dynamic, five scenarios}
+  
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/dynamic_5.png}
+    \caption{Fitness plot for dynamic, five scenarios per generation.} \label{fig:static-single}
+  \end{figure}
+
+  As we can see from the figure, using a dynamic set of five scenarios yields a slightly less chaotic fitness plot.
+  The best individual from this run score a fitness value of \textasciitilde $0.86$.
+  Retesting on a fresh board resulted in \textasciitilde $0.82$
+
+  This is the best strategy for breeding agents that perform well in any instance of a flatland-problem.
 
 \end{multicols}
 

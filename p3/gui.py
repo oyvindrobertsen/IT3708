@@ -42,6 +42,8 @@ class FlatlandGUI:
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                         self.unpause()
+                    elif event.type == pygame.KEYDOWN and event.key == pygame.QUIT:
+                        return
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
