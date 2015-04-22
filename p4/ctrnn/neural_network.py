@@ -36,7 +36,7 @@ class Neuron(BaseNeuron):
 
     @property
     def dy(self):
-        return (1 / self.t) * (-self.prev_y + self.s)
+        return (-self.prev_y + self.s) / self.t
 
     @property
     def output(self):
@@ -97,6 +97,7 @@ class NeuralNetwork:
     def get_layer_values(self, layer_no, bias=True):
         if not bias:
             return np.array([n.output for n in self.layers[layer_no] if isinstance(n, Neuron)])
+
         return np.array([n.output for n in self.layers[layer_no]])
 
     def propagate_input(self, values):

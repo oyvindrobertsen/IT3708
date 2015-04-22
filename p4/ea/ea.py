@@ -152,6 +152,8 @@ class EARunner(object):
             self.std_devs.append(std_dev)
             log_generation(len(self.averages) - 1, generation_max_fitness, avg, std_dev)
 
+        print(last_best.phenotype)
+
     def plot(self):
         plt.title(self.problem)
         plt.plot(self.averages)

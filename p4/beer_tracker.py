@@ -50,12 +50,7 @@ class BeerTrackerAgent(object):
 
         self.actions.append(direction * steps)
 
-        if self.world.wrap:
-            self.leftmost %= self.world.width
-        elif self.leftmost < 0:
-            self.leftmost = 0
-        elif self.rightmost >= self.world.width:
-            self.leftmost = self.world.width - TRACKER_WIDTH
+        self.leftmost %= self.world.width
 
     def get_sensor_readings(self):
         return [col_no in self.world.active_object.columns for col_no in self.columns]
@@ -63,9 +58,7 @@ class BeerTrackerAgent(object):
     def act(self):
         out = self.brain.propagate_input(self.get_sensor_readings())
 
-        has_pull_option = self.brain.neuron_count(-1)[0] == 3
-
-        if has_pull_option and out[2] > out[0] and out[2] > out[1]:
+        if self.has_pull_option and out[2] > out[0] and out[2] > out[1]:
             self.world.pull()
             self.actions.append(PULL)
         elif out[0] > out[1]:
@@ -113,6 +106,19 @@ class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):
     def get_sensor_readings(self):
         return super(BeerTrackerAgentWithWallSensors, self).get_sensor_readings() \
                + [self.leftmost <= 0, self.rightmost >= (self.world.width - 1)]
+
+    def move(self, direction, steps):
+        steps = int(steps)
+        self.leftmost += direction * steps
+
+        self.actions.append(direction * steps)
+
+        if self.leftmost < 0:
+            self.leftmost = 0
+            self.points -= 1
+        elif self.rightmost >= self.world.width:
+            self.leftmost = self.world.width - TRACKER_WIDTH
+            self.points -= 1
 
 
 class BeerTrackerObject(object):
@@ -172,24 +178,6 @@ class BeerTrackerWorld(object):
                     after_tick(tick=i)
                 except FinishSimulationSignal:
                     after_tick = None
-
-    def terminal_print(self):
-        for y in xrange(self.height, 0, -1):
-            print('|', end='')
-            for j in xrange(self.width):
-                c = ' '
-                if j in self.active_object.columns:
-                    if y == self.active_object.y_position:
-                        c = 'V'
-                    elif y < self.active_object.y_position:
-                        c = ':'
-                print(c, sep='', end='')
-            print('| {:>2}'.format(y))
-
-        print(' ', end='')
-        for y in xrange(self.width):
-            print('^' if y in self.agent.columns else ' ', sep='', end='')
-        print('   0')
 
 
 class BeerTrackerProblem(Problem):
