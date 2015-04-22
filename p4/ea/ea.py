@@ -33,28 +33,18 @@ class EARunner(object):
     Simple EA implementation
     '''
 
-    def __init__(self, problem=None, population_size=None, generations=None, crossover_rate=None, mutation_rate=None,
-                 adult_selection=None, adult_to_child_ratio=None, parent_selection=None, k=1, epsilon=0.2,
-                 crossover_function=None,
-                 mutation_function=None, threshold=None, **kwargs):
-        if None in (problem, population_size, generations, crossover_rate,
-                    mutation_rate, adult_selection, adult_to_child_ratio, parent_selection,
-                    crossover_function, mutation_function):
-            raise RuntimeError('A parameter that can not be None is None.')
-
-        self.problem = problem
-        self.population_size = population_size
-        self.generations = generations
-        self.crossover_rate = crossover_rate
-        self.mutation_rate = mutation_rate
-        self.adult_selection = adult_selection
-        self.number_of_adults = int(self.population_size * adult_to_child_ratio)
-        self.select_parent = parent_selection
-        self.k = k
-        self.epsilon = epsilon
-        self.crossover = crossover_function
-        self.mutate = mutation_function
-        self.threshold = threshold
+    def __init__(self, **kwargs):
+        self.problem = kwargs['problem']
+        self.population_size = kwargs['population_size']
+        self.generations = kwargs['generations']
+        self.crossover_rate = kwargs['crossover_rate']
+        self.mutation_rate = kwargs['mutation_rate']
+        self.adult_selection = kwargs['adult_selection']
+        self.number_of_adults = int(self.population_size * kwargs['adult_to_child_ratio'])
+        self.select_parent = kwargs['parent_selection']
+        self.crossover = kwargs['crossover_function']
+        self.mutate = kwargs['mutation_function']
+        self.threshold = kwargs['threshold']
         self.averages = []
         self.maximums = []
         self.std_devs = []
@@ -111,9 +101,8 @@ class EARunner(object):
             open_slots = self.population_size - len(self.population)
             # We calculate temperature inversely proportionate to progression wether we use it in parent selection or not
             temperature = max(1, self.generations - len(self.averages))
-            parents = [(self.select_parent(self.population, k=self.k, epsilon=self.epsilon, temperature=temperature),
-                        self.select_parent(self.population, k=self.k, epsilon=self.epsilon, temperature=temperature,
-                                           **kwargs)) for _ in range(open_slots)]
+            parents = [(self.select_parent(self.population, temperature=temperature),
+                        self.select_parent(self.population, temperature=temperature, **kwargs)) for _ in range(open_slots)]
 
             children = []
             while len(children) < open_slots:

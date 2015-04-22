@@ -17,16 +17,17 @@ if __name__ == "__main__":
     )
 
     # Configure the runner
-    population_size = 200
+    population_size = 60
     generations = 100
     adult_selection = generational_mixing
     adult_to_child_ratio = 0.5
-    parent_selection = tournament_selection
+    parent_selection = sigma_scaling_selection
     k = 8
     epsilon = 0.05
-    crossover_rate = 0.5
-    crossover_function = braid
-    mutation_rate = 0.01
+    crossover_rate = 0.7
+    crossover_function = one_point_crossover
+    n_points = 3
+    mutation_rate = 0.08
     mutation_function = per_genome_component
     threshold = None
 

@@ -8,6 +8,9 @@ from enums import *
 from gui import BeerTrackerGUI, FinishSimulationSignal
 from utils import random_bitstring, normalize_bitstring, matrix_fit, scale
 
+LARGE_CONST = 1
+SMALL_CONST = 1
+
 
 class BeerTrackerAgent(object):
     def __init__(self, world, brain):
@@ -95,12 +98,12 @@ class BeerTrackerAgent(object):
 
     def avoidance(self, obj):
         if obj.width >= 5:
-            self.points += 1
+            self.points += 2
         else:
-            self.points -= 1
+            self.points -= 2
 
     def fail(self, obj):
-        self.points -= 1
+        self.points -= 3
 
 
 class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):

@@ -18,9 +18,9 @@ def full_replacement(population, **kwargs):
 
 
 def over_production(population, **kwargs):
-    if kwargs['number_of_adults']:
-        number_of_adults = kwargs.pop('number_of_adults')
-    else:
+    try:
+        number_of_adults = kwargs['number_of_adults']
+    except:
         sys.exit('over_production adult selection requires number of adults to be specified.')
     children = sorted(
         list(filter(lambda ind: not ind.mature, population)),
@@ -30,9 +30,9 @@ def over_production(population, **kwargs):
 
 
 def generational_mixing(population, **kwargs):
-    if kwargs['number_of_adults']:
-        number_of_adults = kwargs.pop('number_of_adults')
-    else:
+    try:
+        number_of_adults = kwargs['number_of_adults']
+    except:
         sys.exit('generational_mixing adult selection requires number of adults to be specified.')
     return list(
         map(set_adult, sorted(population, cmp=lambda x, y: cmp(x.fitness, y.fitness), reverse=True)[:number_of_adults]))
@@ -81,7 +81,12 @@ def boltzmann_selection(population, temperature=1, **kwargs):
             return population[i]
 
 
-def tournament_selection(population, k=1, epsilon=0.2, **kwargs):
+def tournament_selection(population, **kwargs):
+    try:
+        k = kwargs['k']
+        epsilon = kwargs.pop['epsilon']
+    except:
+        sys.exit('tournament selection requires a bracket size (k) and an epsilon value to be specified.')
     group = random.sample(population, k)
     roll = random.random()
     if roll < epsilon:
@@ -99,6 +104,30 @@ def one_point_crossover(parent_1, parent_2, **kwargs):
     cutoff = int(len(parent_1.genotype) * roll)
     child_genotype = parent_1.genotype[:cutoff] + parent_2.genotype[cutoff:]
     return Individual(child_genotype)
+
+def multi_point_crossover(parent_1, parent_2, **kwargs):
+    from ea.ea import Individual
+
+    try:
+        n_points = kwargs['n_points']
+    except:
+        n_points = 2
+
+    rolls = [1.0]
+    while len(rolls) < n_points:
+        roll = random.random()
+        if roll not in rolls:
+            rolls.append(roll)
+    cutoffs = list(map(lambda r: int(len(parent_1.genotype) * r), rolls))
+    previous = 0
+    result = []
+    for i, r in enumerate(cutoffs):
+        if i % 2:
+            result.append(parent_1.genotype[previous:r])
+        else:
+            result.append(parent_2.genotype[previous:r])
+        previous = r
+    return Individual(''.join(result))
 
 
 def braid(parent_1, parent_2, **kwargs):
