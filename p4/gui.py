@@ -62,7 +62,7 @@ class BeerTrackerGUI:
                     self.pause()
                 elif event.key == pygame.K_PLUS:
                     # go faster
-                    sleep_time = max(self.sleep_time - SLEEP_TIME_DELTA, SLEEP_TIME_DELTA)
+                    self.sleep_time = max(self.sleep_time - SLEEP_TIME_DELTA, SLEEP_TIME_DELTA)
                 elif event.key == pygame.K_MINUS:
                     # go slower
                     self.sleep_time += SLEEP_TIME_DELTA

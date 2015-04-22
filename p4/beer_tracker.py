@@ -92,9 +92,9 @@ class BeerTrackerAgent(object):
 
     def capture(self, obj):
         if obj.width >= 5:
-            self.points -= 1
+            self.points -= 3
         else:
-            self.points += 1
+            self.points += 3
 
     def avoidance(self, obj):
         if obj.width >= 5:
@@ -103,7 +103,10 @@ class BeerTrackerAgent(object):
             self.points -= 2
 
     def fail(self, obj):
-        self.points -= 3
+        if obj.width >= 5:
+            self.points -= 4
+        else:
+            self.points -= 1
 
 
 class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):
@@ -245,6 +248,8 @@ class BeerTrackerProblem(Problem):
         phenotype = kwargs.get('phenotype')
         network = self.neural_network
         network.assign_phenotype(phenotype)
+        
+        print(phenotype)
 
         BeerTrackerGUI(
             world=self.world,

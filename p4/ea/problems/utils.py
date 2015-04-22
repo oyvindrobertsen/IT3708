@@ -84,7 +84,7 @@ def boltzmann_selection(population, temperature=1, **kwargs):
 def tournament_selection(population, **kwargs):
     try:
         k = kwargs['k']
-        epsilon = kwargs.pop['epsilon']
+        epsilon = kwargs['epsilon']
     except:
         sys.exit('tournament selection requires a bracket size (k) and an epsilon value to be specified.')
     group = random.sample(population, k)

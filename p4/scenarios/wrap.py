@@ -27,7 +27,7 @@ if __name__ == "__main__":
     crossover_rate = 0.7
     crossover_function = one_point_crossover
     n_points = 3
-    mutation_rate = 0.08
+    mutation_rate = 0.1
     mutation_function = per_genome_component
     threshold = None
 
