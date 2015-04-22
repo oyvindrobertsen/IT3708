@@ -62,7 +62,7 @@ class BeerTrackerGUI:
                     self.pause()
                 elif event.key == pygame.K_PLUS:
                     # go faster
-                    sleep_time = max(self.sleep_time - SLEEP_TIME_DELTA, SLEEP_TIME_DELTA)
+                    self.sleep_time = max(self.sleep_time - SLEEP_TIME_DELTA, SLEEP_TIME_DELTA)
                 elif event.key == pygame.K_MINUS:
                     # go slower
                     self.sleep_time += SLEEP_TIME_DELTA
@@ -78,6 +78,11 @@ class BeerTrackerGUI:
             self.font.render('Points: {}'.format(self.world.agent.points), True, (0, 0, 0)),
             (10, 50)
         )
+        for i, action in enumerate(self.agent.actions[-5:-1]):
+            self.window.blit(
+                self.font.render(str(action), True, (0, 0, 0)),
+                (10, 100 + 50 * i)
+            )
 
         pygame.draw.rect(
             self.window,
