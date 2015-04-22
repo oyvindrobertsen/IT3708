@@ -85,7 +85,7 @@ def tournament_selection(population, **kwargs):
     try:
         k = kwargs['k']
         epsilon = kwargs['epsilon']
-    except:
+    except KeyError:
         sys.exit('tournament selection requires a bracket size (k) and an epsilon value to be specified.')
     group = random.sample(population, k)
     roll = random.random()

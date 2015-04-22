@@ -208,20 +208,48 @@
 
     \section{Analysis}
     \begin{lstlisting}[caption=Evolved phenotype, label=phenotype]
-    {'inter': [array([[-4.60784314, -4.33333333],
-            [ 4.41176471,  4.29411765]]), array([[ 2.25490196,  1.54901961],
-        [-2.1372549 , -2.96078431]])], 'cross': [array([[ 4.01960784, -0.7254902 ],
-                [-3.74509804, -4.33333333],
-                [-0.52941176, -1.78431373],
-                [ 1.43137255, -1.43137255],
-                [ 2.33333333, -4.68627451],
-            [-1.03921569, -3.98039216]]), array([[-0.21568627,  3.94117647],
-                [-2.49019608, -1.31372549],
-    [-4.96078431, -2.76470588]])], 'ts': [1.2980392156862746, 1.192156862745098, 1.192156862745098, 1.192156862745098, 1.1607843137254903, 1.1294117647058823, 1.9607843137254903, 1.396078431372549, 1.1686274509803922], 'gains': [3.9019607843137254, 1.0784313725490196, 3.83921568627451, 3.1333333333333333, 2.6, 3.164705882352941, 1.188235294117647, 2.4117647058823533, 2.7254901960784315]}
+{'inter': [[[-4.60784314, -4.33333333],
+            [ 4.41176471,  4.29411765]],
+           [[ 2.25490196,  1.54901961],
+            [-2.1372549 , -2.96078431]]],
+ 'cross': [[[ 4.01960784, -0.7254902 ],
+            [-3.74509804, -4.33333333],
+            [-0.52941176, -1.78431373],
+            [ 1.43137255, -1.43137255],
+            [ 2.33333333, -4.68627451],
+            [-1.03921569, -3.98039216]],
+           [[-0.21568627,  3.94117647],
+            [-2.49019608, -1.31372549],
+            [-4.96078431, -2.76470588]]],
+'ts': [1.2980392156862746, 1.192156862745098,
+       1.192156862745098, 1.192156862745098,
+       1.1607843137254903, 1.1294117647058823,
+       1.9607843137254903, 1.396078431372549,
+       1.1686274509803922],
+'gains': [3.9019607843137254, 1.0784313725490196,
+          3.83921568627451, 3.1333333333333333,
+          2.6, 3.164705882352941,
+          1.188235294117647, 2.4117647058823533,
+          2.7254901960784315]}
     \end{lstlisting}
 
     The evolved phenotype shown in listing \ref{phenotype} is very good at capturing and avoiding correctly when it finds objects,
     but moves very slowly, so still misses a lot.
+
+    Looking at the hidden layer,
+    we can see that one of the two has a much larger gain term ($3.8$ vs. $1.19$).
+    The arc emanating from this neuron are $-0.22$ to the left motor neuron and $3.94$ to the right motor.
+    This means the agent is much more likely to move to the right.
+
+    However, the hidden neuron with the lower gain also has a much higher time constant, ($1.13$ vs $1.96$).
+    This neuron outputs negative to both the left and right outputs.
+    So if this neuron gets to output high values (because the memory repeatedly gets reinforced) it is able to counteract the other neuron's initiative to move to the right,
+    and hold the agent in place.
+
+    Repeatedly inputing all zeroes makes the agent move 1 step to the right, stand still one tick, then move once again, stand still, and so on.
+
+    Inputing $[0, 0, 1, 0, 0]$ outputs low values, so the agent stands still.
+    When repeating the input the left neuron keeps a constant zero value while the right neuron alternates between very low values and values that are near the "step 1 to the right" range.
 
 \end{multicols}
 

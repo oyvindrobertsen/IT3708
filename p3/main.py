@@ -16,7 +16,7 @@ if __name__ == "__main__":
         t=60,
         activation_threshold=0.0,
         minimum_activation=0.0,
-        static=True,
+        static=False,
         num_scenarios=5
     )
 

@@ -139,7 +139,8 @@ class EARunner(object):
             children = self.mutate(children, self.mutation_rate, self.problem.mutate_genome_component, **kwargs)
             self.population = self.population + children
 
-        self.problem.visualization(individual=bestest, board=best_board)
+        print(bestest.phenotype)
+        self.problem.visualization(individual=bestest, board=self.problem.generate_new_scenario())
 
         # Analyze last generated generation if we didn't find a solution
         if analyze_after_loop:
@@ -171,6 +172,7 @@ class EARunner(object):
             std_dev = np.std(np.array(fitnesses))
             self.std_devs.append(std_dev)
             log_generation(len(self.averages) - 1, generation_max_fitness, avg, std_dev, generation_max_phenotype)
+
 
     def plot(self):
         plt.title(self.problem)

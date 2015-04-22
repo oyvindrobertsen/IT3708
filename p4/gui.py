@@ -74,13 +74,21 @@ class BeerTrackerGUI:
             self.font.render('Time: {}'.format(kwargs.get('tick')), True, (0, 0, 0)),
             (10, 10)
         )
+
         self.window.blit(
             self.font.render('Points: {}'.format(self.world.agent.points), True, (0, 0, 0)),
             (10, 50)
         )
+
+        s = str([int(x) for x in self.agent.get_sensor_readings()])
+        self.window.blit(
+            self.font.render(s, True, (0, 0, 0)),
+            (self.window_w - self.font.size(s)[0] - 10, 10)
+        )
+
         for i, action in enumerate(self.agent.actions[-5:-1]):
             self.window.blit(
-                self.font.render(str(action), True, (0, 0, 0)),
+                self.font.render('{}: {}'.format((len(self.agent.actions) - i), action), True, (0, 0, 0)),
                 (10, 100 + 50 * i)
             )
 

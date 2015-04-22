@@ -75,17 +75,14 @@ class BeerTrackerAgent(object):
 
         if object_cols.issubset(agent_cols):
             self.capture(obj)
-            return CAPTURE
         elif object_cols.intersection(agent_cols):
             self.fail(obj)
-            return FAIL
         else:
             self.avoidance(obj)
-            return AVOIDANCE
 
     def capture(self, obj):
         if obj.width >= 5:
-            self.points -= 3
+            self.points -= 2
         else:
             self.points += 3
 
@@ -93,13 +90,10 @@ class BeerTrackerAgent(object):
         if obj.width >= 5:
             self.points += 2
         else:
-            self.points -= 2
+            self.points -= 1
 
     def fail(self, obj):
-        if obj.width >= 5:
-            self.points -= 4
-        else:
-            self.points -= 1
+        self.points -= 2
 
 
 class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):
@@ -115,10 +109,8 @@ class BeerTrackerAgentWithWallSensors(BeerTrackerAgent):
 
         if self.leftmost < 0:
             self.leftmost = 0
-            self.points -= 1
         elif self.rightmost >= self.world.width:
             self.leftmost = self.world.width - TRACKER_WIDTH
-            self.points -= 1
 
 
 class BeerTrackerObject(object):

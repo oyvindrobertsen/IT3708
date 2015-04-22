@@ -61,7 +61,7 @@ class EARunner(object):
             # Genotype to phenotype conversion
             # Analyzing population of this generation, logging
             total = 0
-            generation_max_fitness = -100
+            generation_max_fitness = -10000
             generation_max_phenotype = None
             fitnesses = []
             done = False
@@ -101,7 +101,7 @@ class EARunner(object):
             open_slots = self.population_size - len(self.population)
             # We calculate temperature inversely proportionate to progression wether we use it in parent selection or not
             temperature = max(1, self.generations - len(self.averages))
-            parents = [(self.select_parent(self.population, temperature=temperature),
+            parents = [(self.select_parent(self.population, temperature=temperature, **kwargs),
                         self.select_parent(self.population, temperature=temperature, **kwargs)) for _ in range(open_slots)]
 
             children = []

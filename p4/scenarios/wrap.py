@@ -20,14 +20,14 @@ if __name__ == "__main__":
     population_size = 60
     generations = 100
     adult_selection = generational_mixing
-    adult_to_child_ratio = 0.5
+    adult_to_child_ratio = 0.4
     parent_selection = sigma_scaling_selection
     k = 8
     epsilon = 0.05
-    crossover_rate = 0.7
+    crossover_rate = 0.4
     crossover_function = one_point_crossover
     n_points = 3
-    mutation_rate = 0.1
+    mutation_rate = 0.05
     mutation_function = per_genome_component
     threshold = None
 
