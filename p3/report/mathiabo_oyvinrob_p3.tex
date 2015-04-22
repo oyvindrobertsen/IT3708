@@ -161,13 +161,22 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   The fitness $f$ is the share of the total available food eaten $s_{food}$, minus the share of the total available poison eaten.
   So an optimal agent that eats all the food and avoids all the poison will receive a score of $1.0$, while a catastrophically bad agent that eats all the poison while avoiding all food receives a score of $-1.0$.
 
-  \newpage
   \section{ANN implementation}
 
   \subsection{ANN design}
 
   \def\layersep{2.0cm}
 
+  Figure~\ref{fig:ann-layout} shows the ANN design with which we achieved the best results,
+  a relatively simple perceptron.
+  There are six input neurons, three representing the food sensors and three representing the poison sensors.
+  Each input neuron is connected to each of the output neurons.
+  The three outputs control the agents movement.
+  We used a single bias node, outputting $1.0$ to the output layer.
+
+  We used a standard sigmoid for our activation function.
+  To some initial surprise on our part, we achieved the most consistent results using binary weights.
+  
   \begin{figure}[H]
     \centering
     \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
@@ -215,17 +224,7 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
     \caption{ANN layout} \label{fig:ann-layout}
   \end{figure}
-
-  Figure~\ref{fig:ann-layout} shows the ANN design with which we achieved the best results,
-  a relatively simple perceptron.
-  There are six input neurons, three representing the food sensors and three representing the poison sensors.
-  Each input neuron is connected to each of the output neurons.
-  The three outputs control the agents movement.
-  We used a single bias node, outputting $1.0$ to the output layer.
-
-  We used a standard sigmoid for our activation function.
-  To some initial surprise on our part, we achieved the most consistent results using binary weights.
-
+  
   \subsection{Design process}
 
   As we had no prior experience designing ANNs,
@@ -315,6 +314,18 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
   This is the best strategy for breeding agents that perform well in any instance of a flatland-problem.
 
+  \subsection{Notes on behaviour}
+
+  The following are some observations we noted while experimenting with the configurations outlined above.
+
+  \begin{itemize}
+    \item The difference between using one or five scenarios in the static case is large.
+          Due to the randomness involved in creating five scenarios,
+          those five boards will more often than not be different enough
+          that the resulting agent will be fairly general.
+    \item In the dynamic case, the agents produced are often functioning completely optimal,
+          but receive penalties because they run out of time.
+  \end{itemize}
 
 \end{multicols}
 
