@@ -156,8 +156,8 @@ class EARunner(object):
 
     def plot(self):
         plt.title(self.problem)
-        plt.plot(self.averages)
-        plt.plot(self.maximums)
-        plt.plot(self.std_devs)
-        plt.legend(['averages', 'maximums', 'standard deviation'], loc='best')
+        plt.plot(self.averages, label='averages')
+        plt.plot(self.maximums, label='maximums')
+        plt.plot(self.std_devs, label='standard deviation')
+        plt.legend(loc='best')
         plt.show()

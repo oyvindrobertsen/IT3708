@@ -62,9 +62,9 @@ class BeerTrackerAgent(object):
             self.world.pull()
             self.actions.append(PULL)
         elif out[0] > out[1]:
-            self.move(LEFT, int(out[0] * 4.99))
+            self.move(LEFT, int((out[0] - out[1]) * 4.99))
         else:
-            self.move(RIGHT, int(out[1] * 4.99))
+            self.move(RIGHT, int((out[1] - out[0]) * 4.99))
 
     def interact(self, obj):
         if obj.y_position > 0:
