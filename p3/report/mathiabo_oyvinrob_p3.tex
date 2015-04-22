@@ -125,8 +125,8 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   We knew that some degree of elitism would be required.
   To achieve this, we chose generational mixing and tournament selection as adult and parent selection strategies respectively.
   
-  We experimented with various values for tournament selection bracket size, crossover and mutation rates to ensure that we werent too elitist and to keep mutations at a productive level.
-  Population size and number of generations to simulate were then adjusted to adjust make sure that a reasonably intelligent solution could be found within a few minutes.
+  We experimented with various values for tournament selection bracket size, crossover and mutation rates to ensure that we weren't too elitist and to keep mutations at a productive level.
+  Population size and number of generations to simulate were then adjusted to make sure that a reasonably intelligent solution could be found within a few minutes.
   
   \begin{table}[H]
     \begin{tabular}{|l|l|}
@@ -158,7 +158,7 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   \end{gather*}
 
   The equations above describe the fitness function we implemented.
-  The fitness $f$ is the share of the total available food eaten $s_{food}$, minus the share of the total available poison eaten.
+  The fitness $f$ is the share of the total available food eaten, $s_{food}$, minus the share of the total available poison eaten, $s_{poison}$.
   So an optimal agent that eats all the food and avoids all the poison will receive a score of $1.0$, while a catastrophically bad agent that eats all the poison while avoiding all food receives a score of $-1.0$.
 
   \section{ANN implementation}
@@ -228,7 +228,7 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   \subsection{Design process}
 
   As we had no prior experience designing ANNs,
-  we initially approached the by problem "blindly" trying different configurations.
+  we initially approached the problem by "blindly" trying different configurations.
   We started out using 8-bit weights,
   and a single hidden layer in addition to the design depicted in figure~\ref{fig:ann-layout}.
   Through several evolutionary runs, with varying parameters used for the runs (increasing selection pressure),
@@ -247,11 +247,11 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   the very first run with this weight-encoding was also the first run in which an agent achieved a fitness of $1.0$.
 
   However, after giving it some thought,
-  what we realised is that a simple design restricts the search space for our EA.
+  we realised that this simple design restricts the search space for our EA.
   This means there are fewer local maxima, 
   and the jumps in the search space needed to find a better maxima are shorter.
-  An near-optimal agent for the Flatland problem does not require a lot of complexity.
-  It is simple mapping of $3*3*3$ possible input states to 3 possible output states,
+  A near-optimal agent for the Flatland problem does not require a lot of complexity.
+  It is a simple mapping of $3*3*3$ possible input states to 3 possible output states,
   and could be coded with just a sequence of if-else statements.
   By simplifying the neural network we make it more likely to find a configuration which acts this way.
 
@@ -298,7 +298,7 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   The dynamic, single scenario run has a very fluctuating finess plot.
   The ``environment'' changes too much for the selection pressure applied throughout the EA run have much value.
 
-  The best performing individual scored a fitness value of \textasciitilde $0.98$ during the run, and \textasciitilde $0.57$ when retested on a new scenarios.
+  The best performing individual scored a fitness value of \textasciitilde $0.98$ during the run, and \textasciitilde $0.57$ when retested on a new scenario.
 
   \subsection{Dynamic, five scenarios}
   
