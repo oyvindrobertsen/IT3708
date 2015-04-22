@@ -6,10 +6,7 @@ from ea.ea import Individual
 from ea.problems import Problem
 from enums import *
 from gui import BeerTrackerGUI, FinishSimulationSignal
-from utils import random_bitstring, normalize_bitstring, matrix_fit, scale
-
-LARGE_CONST = 1
-SMALL_CONST = 1
+from utils import random_bitstring, normalize_bitstring, matrix_fit
 
 
 class BeerTrackerAgent(object):
@@ -84,7 +81,7 @@ class BeerTrackerAgent(object):
         if obj.width >= 5:
             self.points -= 2
         else:
-            self.points += 3
+            self.points += 1
 
     def avoidance(self, obj):
         if obj.width >= 5:
@@ -228,7 +225,7 @@ class BeerTrackerProblem(Problem):
         phenotype = kwargs.get('phenotype')
         network = self.neural_network
         network.assign_phenotype(phenotype)
-        
+
         print(phenotype)
 
         BeerTrackerGUI(
