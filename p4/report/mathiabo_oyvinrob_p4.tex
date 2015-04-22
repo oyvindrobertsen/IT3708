@@ -79,7 +79,7 @@
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
 
-\title{\vspace{-15mm}\fontsize{18pt}{10pt}\selectfont\textbf{Evolving Continuous Time Recurrent Neural Networks for a Beer Tracker Agent - Project Report}} % Article title
+\title{\vspace{-15mm}\fontsize{18pt}{10pt}\selectfont\textbf{Evolving Continuous Time Recurrent Neural Networks\\for a Beer Tracker Agent - Project Report}} % Article title
 
 \author{
     \large
@@ -146,8 +146,77 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     so an output near $1.0$ means the agent takes 4 steps and an output near $0.0$ means it takes no steps at all.
 
     \section{Performance}
+    It is more difficult to consistently reproduce the same behavior in this project than it has been in previous projects.
+    This is because both the problem and the CTRNN itself are more complex,
+    with more variable parameters and more randomness.
+
+    In the standard scenario the most commonly seen evolved behavior is an agent which moves in only one direction.
+    It stops and stands still to capture most objects,
+    but is not very good at avoiding the dangerous objects,
+    and often captures big objects too.
+    We have however also seen smarter agents appear sometimes,
+    that are able to avoid most dangerous objects,
+    while also being able to capture most safe objects.
+    These will typically slow down when they find an object,
+    and do small steps to "figure" out the size of the object,
+    then either stand still if it is safe or accelerate away if not.
+
+    The agent in the "pull" scenario typically acts a lot like the standard agent,
+    but uses the pull move instead of standing still and waiting for small objects to drop.
+    Sometimes the time recurrency of the network makes it use the pull power two times.
+
+    Listing \ref{points} shows how points are awarded.
+    It is possible to capture an object, to avoid it, or to fail at either.
+    These points are used as the fitness measure, which can be seen evolving in figure \ref{standard}.
+
+    \begin{lstlisting}[caption=Awarding points which are used for fitness measure, label=points]
+def capture(self, obj):
+    if obj.width >= 5:
+        self.points -= 2
+    else:
+        self.points += 1
+
+def avoidance(self, obj):
+    if obj.width >= 5:
+        self.points += 2
+    else:
+        self.points -= 1
+
+def fail(self, obj):
+    self.points -= 2
+    \end{lstlisting}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/i_like_dis_grap}
+        \caption{}
+        \label{standard}
+    \end{figure}
+
+
+    In the no-wrap scenario the most commonly seen behavior is for the agent to move to one of the corners and then just sitting there for the entirety of the simulation.
+We managed to coax an agent into moving back and forth by increasing the range of the time constant drastically.
+However this agent performed much worse than a standard agent at capturing and avoiding.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/nowrap_highT}
+        \caption{}
+        \label{nowrap}
+    \end{figure}
 
     \section{Analysis}
+{'inter': [array([[-4.60784314, -4.33333333],
+       [ 4.41176471,  4.29411765]]), array([[ 2.25490196,  1.54901961],
+       [-2.1372549 , -2.96078431]])], 'cross': [array([[ 4.01960784, -0.7254902 ],
+       [-3.74509804, -4.33333333],
+       [-0.52941176, -1.78431373],
+       [ 1.43137255, -1.43137255],
+       [ 2.33333333, -4.68627451],
+       [-1.03921569, -3.98039216]]), array([[-0.21568627,  3.94117647],
+       [-2.49019608, -1.31372549],
+       [-4.96078431, -2.76470588]])], 'ts': [1.2980392156862746, 1.192156862745098, 1.192156862745098, 1.192156862745098, 1.1607843137254903, 1.1294117647058823, 1.9607843137254903, 1.396078431372549, 1.1686274509803922], 'gains': [3.9019607843137254, 1.0784313725490196, 3.83921568627451, 3.1333333333333333, 2.6, 3.164705882352941, 1.188235294117647, 2.4117647058823533, 2.7254901960784315]}
+
 
 \end{multicols}
 
