@@ -38,7 +38,7 @@
 
 
 %\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
-\usepackage[margin={1cm,2cm}]{geometry}
+\usepackage[margin={2cm,2cm}]{geometry}
 \setlength{\columnsep}{1cm}
 \usepackage{multicol} % Used for the two-column layout of the document
 \usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
@@ -138,7 +138,7 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
       Adult selection                   & Generational mixing  \\ \hline
       Adult to child ratio              & 0.5                  \\ \hline
       Parent selection                  & Tournament selection \\ \hline
-      Tournament selection bracket size & 16                   \\ \hline
+      Bracket size                      & 16                   \\ \hline
       Epsilon                           & 0.15                 \\ \hline
       Crossover operator                & One point crossover  \\ \hline
       Mutation operator                 & Per genome component \\ \hline
@@ -146,6 +146,8 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \caption{Table of EA parameters}
     \label{tbl:ea-parameters}
   \end{table}
+
+
 
   \subsection{Fitness function}
 
@@ -156,9 +158,8 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   \end{gather*}
 
   The equations above describe the fitness function we implemented.
-  The fitness $f$ is equal to the penalty for poison eaten $s_{poison}$ subtracted from the score rewarded for food eaten $s_{food}$.
-  The food reward and the poison penalty are the shares of total food/poison the agent has consumed.
-  In other words, a ``perfect'' agent is one that eats all the food on a board instance and avoids all poison.
+  The fitness $f$ is the share of the total available food eaten $s_{food}$, minus the share of the total available poison eaten.
+  So an optimal agent that eats all the food and avoids all the poison will receive a score of $1.0$, while a catastrophically bad agent that eats all the poison while avoiding all food receives a score of $-1.0$.
 
   \newpage
   \section{ANN implementation}
@@ -166,7 +167,6 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   \subsection{ANN design}
 
   \def\layersep{2.0cm}
-  
 
   \begin{figure}[H]
     \centering
@@ -216,7 +216,8 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \caption{ANN layout} \label{fig:ann-layout}
   \end{figure}
 
-  Figure~\ref{fig:ann-layout} shows the ANN design with which we achieved the best results with.
+  Figure~\ref{fig:ann-layout} shows the ANN design with which we achieved the best results,
+  a relatively simple perceptron.
   There are six input neurons, three representing the food sensors and three representing the poison sensors.
   Each input neuron is connected to each of the output neurons.
   The three outputs control the agents movement.
@@ -227,19 +228,33 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
 
   \subsection{Design process}
 
-  As we had no prior experience designing ANNs, our approach was slightly unguided.
-  We started out using 8-bit weights, and a single hidden layer in addition to the design depicted in figure~\ref{fig:ann-layout}.
-  Through several evolutionary runs, with varying parameters used for the runs (increasing selection pressure), the best individuals using this design achieved fitness values between $0.35$ and $0.6$.
-  Note that the codomain of our fitness function is $[-1, 1]$.
-  While these values don't m, we noticed that these agents decreased their score by making stupid choices, not by being placed in situations in which they would have no other choice than to eat poison.
+  As we had no prior experience designing ANNs,
+  we initially approached the by problem "blindly" trying different configurations.
+  We started out using 8-bit weights,
+  and a single hidden layer in addition to the design depicted in figure~\ref{fig:ann-layout}.
+  Through several evolutionary runs, with varying parameters used for the runs (increasing selection pressure),
+  the best individuals using this design achieved fitness values between $0.35$ and $0.6$.
+  %Note that the codomain of our fitness function is $[-1, 1]$.
+  Observing these agents moving about the flatland,
+  we saw that they decreased their score by making bad decisions,
+  e.g. moving into a neighboring empty cell instead of a cell with food.
 
-  As the desired agent functionality is very simple, we started gradually simplifying our network.
-  Removing the hidden layer yielded positive results, so on a whim, we decided to run a simulation with binary weights.
-  (Encoding weights as 1-bit integers in our genomes that is.)
-  We were surprised at first, as our first run with this weight-encoding was also the first run in which an agent achieved a fitness of $1.0$.
+  Continuing our experiments,
+  we tried simplifying our network by removing the hidden layer,
+  which did in fact produce a more fit population.
 
-  However, after giving it some thought, we realised that this design restricted the search space for our EA, while still allowing for an optimal agent function to be encoded in the weights.
+  On a whim we also changed the bit count per weight to just 1.
+  To our surprise,
+  the very first run with this weight-encoding was also the first run in which an agent achieved a fitness of $1.0$.
 
+  However, after giving it some thought,
+  what we realised is that a simple design restricts the search space for our EA.
+  This means there are fewer local maxima, 
+  and the jumps in the search space needed to find a better maxima are shorter.
+  An near-optimal agent for the Flatland problem does not require a lot of complexity.
+  It is simple mapping of $3*3*3$ possible input states to 3 possible output states,
+  and could be coded with just a sequence of if-else statements.
+  By simplifying the neural network we make it more likely to find a configuration which acts this way.
 
   \section{EA performance}
 
@@ -251,11 +266,13 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \caption{Fitness plot for static, single scenario run.} \label{fig:static-single}
   \end{figure}
 
-  While no optimally performing agent was found, the best agent ate no poison and left only one piece of food inthe static scenario.
+  While no optimally performing agent was found,
+  the best agent ate no poison and left only one piece of food in the static scenario.
   This resulted in a fitness value of \textasciitilde $0.89$.
   Testing that same agent on a freshly generated scenario yielded a fitness value of \textasciitilde $0.44$.
-  Since we are ``training'' the network only on a single scenario, it is to be expected that it will not be a good general solution.
-  This explaines the drop in performance on the new scenario.
+  Since we are ``training'' the network only on a single scenario,
+  it is to be expected that it will not be a good general solution.
+  This explains the drop in performance on the new scenario.
   
   \subsection{Static, five scenarios}
 
@@ -265,9 +282,11 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \caption{Fitness plot for static, five scenario per generation run.} \label{fig:static-single}
   \end{figure}
 
-  Testing each generation on a (static) set of five scenarios does not yield a higher top fitness. (\textasciitilde $0.85$)
-  Applying the best individual on a new scenario resulted in a fitness of \textasciitilde $0.77$, making this a slightly better strategy for breeding a general solution to the flatland-problem.
-  Since the population is trained on the same set of scenarios each generation however, the generality of the resulting network depends on to which degree the five scenarios represent the breadth of the problem domain.
+  Testing each generation on a static set of five scenarios does not yield a higher top fitness (\textasciitilde $0.85$).
+  Applying the best individual on a new scenario resulted in a fitness of \textasciitilde $0.77$, which means this a slightly better strategy for breeding a general solution to the flatland-problem.
+  Since the population is trained on the same set of scenarios each generation however,
+  the generality of the resulting network depends on whether the five scenarios represent the breadth of the problem domain.
+  If they are simillar then this training will not be much better than the single static scenario training.
 
   \subsection{Dynamic, single scenario}
   
@@ -277,7 +296,7 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
     \caption{Fitness plot for dynamic, single scenario run.} \label{fig:static-single}
   \end{figure}
 
-  As we expected, the dynamic, single scenario run has a very fluctuating finess plot.
+  The dynamic, single scenario run has a very fluctuating finess plot.
   The ``environment'' changes too much for the selection pressure applied throughout the EA run have much value.
 
   The best performing individual scored a fitness value of \textasciitilde $0.98$ during the run, and \textasciitilde $0.57$ when retested on a new scenarios.
@@ -291,10 +310,11 @@ The purpose of this project is to use an evolutionary algorithm to tune the weig
   \end{figure}
 
   As we can see from the figure, using a dynamic set of five scenarios yields a slightly less chaotic fitness plot.
-  The best individual from this run score a fitness value of \textasciitilde $0.86$.
+  The best individual from this run scores a fitness value of \textasciitilde $0.86$.
   Retesting on a fresh board resulted in \textasciitilde $0.82$
 
   This is the best strategy for breeding agents that perform well in any instance of a flatland-problem.
+
 
 \end{multicols}
 
