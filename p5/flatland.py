@@ -8,10 +8,10 @@ from utils import tuple_add, TorusWorld
 from enums import *
 
 
-NONE_STEP = -2
-POISON_STEP = -10
-FOOD_STEP = 20
-FINISH_STEP = 50
+NONE_STEP = -30
+POISON_STEP = -500
+FOOD_STEP = 50
+FINISH_STEP = 1000
 
 
 def calculate_reward(current, tile):
@@ -84,13 +84,7 @@ class Flatland(TorusWorld):
     @property
     def done(self):
         return self.food_eaten == self.n_food and \
-               self.agent_position == (self.agent_start_x, self.agent_start_y)
-
-    @property
-    def score(self):
-        food_score = self.food_eaten / ((self.food_eaten + self.get_count_of_value(FOOD)) or 1)
-        poison_score = self.poison_eaten / ((self.poison_eaten + self.get_count_of_value(POISON)) or 1)
-        return food_score - poison_score
+            self.agent_position == (self.agent_start_x, self.agent_start_y)
 
 
 class State(object):
@@ -140,6 +134,7 @@ class FlatlandQLearn(object):
             # Attempt to exploit knowledge
             values = self.q.get(current_state, {})
             ret = max(values.iterkeys(), key=(lambda key: values[key])) if values else ret
+
         return ret
 
     def learn(self):
@@ -150,7 +145,7 @@ class FlatlandQLearn(object):
             current_state = State(game.agent_position)
             action_history = []
             state_history = []
-            while not game.done and not t > 5000:
+            while not game.done and not t > 600:
                 # Select action to perform
                 action = self.choose_action(current_state)
                 action_history.append(action)
@@ -172,9 +167,25 @@ class FlatlandQLearn(object):
                 # Update Q
                 self.update_q(state_history[-1], current_state, action, reward)
 
+                # Backup x-steps
+                # for j in range(-1, -min(3, len(action_history)), -1):
+                #     self.update_q(state_history[j-1], state_history[j], action_history[j-1], reward)
+
+                # if game.done:
+                #     # Backup trace decay
+                #     decay_rate = 1.0
+                #     action_len = len(action_history)
+                #     for j in range(1, action_len-1):
+                #         self.update_q(state_history[-(j+1)], state_history[-j], action_history[-(j+1)], decay_rate * reward)
+                #         decay_rate -= 1 / action_len
+
                 t += 1
             self.ts.append(t)
             self.temp = max(self.temp - 1/self.k, 0)
+
+        print('Food eaten: {}'.format(game.food_eaten))
+        print('Poison eaten: {}'.format(game.poison_eaten))
+        print('Steps: {}'.format(t))
         return action_history, state_history
 
     def plot_steps(self):

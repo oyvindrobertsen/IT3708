@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+import sys
+
 from flatland import Flatland, FlatlandQLearn
 from gui import FlatlandGUI
 
@@ -21,13 +23,16 @@ def parse_flatland_scenario(filename):
         return Flatland((w, h), x, y, n, grid)
 
 if __name__ == "__main__":
-    flatland = parse_flatland_scenario(SCENARIOS[1])
+    filename = SCENARIOS[2]
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+    flatland = parse_flatland_scenario(filename)
 
     flq = FlatlandQLearn(
-        k=1000,
+        k=4000,
         scenario=flatland,
-        learning_rate=0.3,
-        discount_rate=0.6,
+        learning_rate=0.5,
+        discount_rate=0.8,
         temp=1
     )
 

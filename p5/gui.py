@@ -11,8 +11,8 @@ LINE_WIDTH = 2
 BACKGROUND = (255, 255, 255)
 FOREGROUND = (0, 0, 0)
 
-FOOD_COLOR = (0, 125, 0)
-POISON_COLOR = (125, 0, 0)
+FOOD_COLOR = (0, 255, 0)
+POISON_COLOR = (255, 0, 0)
 
 SLEEP_TIME_DEFAULT = 1.0
 SLEEP_TIME_DELTA = 0.25
@@ -69,7 +69,6 @@ class FlatlandGUI:
 
         pygame.display.set_caption("{} - {}".format(TITLE, 'Finished'))
 
-
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -106,7 +105,7 @@ class FlatlandGUI:
                     best_action = max(cur_pos_values.iterkeys(), key=lambda key: cur_pos_values[key]) \
                         if cur_pos_values else NOOP
                     if not best_action == NOOP:
-                        self.draw_arrow_in_cell(x, y, (0, 0, 125), best_action)
+                        self.draw_arrow_in_cell(x, y, (128, 128, 128), best_action)
 
         pygame.display.flip()
 
