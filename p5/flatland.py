@@ -11,14 +11,14 @@ from enums import *
 NONE_STEP = -30
 POISON_STEP = -500
 FOOD_STEP = 50
-FINISH_STEP = 1000
+FINISH_STEP = FOOD_STEP
 
 
-def calculate_reward(current, tile):
+def calculate_reward(current, tile, steps):
     """
     Given a flatland instance and a tile content returns the score associated with moving onto the tile
     """
-    reward = NONE_STEP
+    reward = NONE_STEP * (1.0 + (steps / (current.w * current.h)))  # if steps > ((current.w * current.h) / 2) else NONE_STEP
 
     if current.done:
         reward = FINISH_STEP
@@ -103,7 +103,7 @@ class State(object):
 
 
 class FlatlandQLearn(object):
-    def __init__(self, k, scenario, learning_rate, discount_rate, temp):
+    def __init__(self, k, scenario, learning_rate, discount_rate, temp, x=0, decay_rate=0):
         self.k = k
         self.scenario = scenario
         self.learning_rate = learning_rate
@@ -111,6 +111,8 @@ class FlatlandQLearn(object):
         self.temp = temp
         self.ts = []
         self.q = {}  # Q :: State, action -> value
+        self.decay_rate = decay_rate
+        self.x = x
 
     def update_q(self, start_state, end_state, action, reward):
 
@@ -138,6 +140,7 @@ class FlatlandQLearn(object):
         return ret
 
     def learn(self):
+        max_steps = self.scenario.w * self.scenario.h * 2
         for i in range(self.k):
             print(i)
             t = 0
@@ -145,7 +148,7 @@ class FlatlandQLearn(object):
             current_state = State(game.agent_position)
             action_history = []
             state_history = []
-            while not game.done and not t > 600:
+            while not game.done and not t > max_steps:
                 # Select action to perform
                 action = self.choose_action(current_state)
                 action_history.append(action)
@@ -154,30 +157,32 @@ class FlatlandQLearn(object):
                 tile = game.perform_action(action)
 
                 # Calculate reward based on the result of the action
-                reward = calculate_reward(game, tile)
+                reward = calculate_reward(game, tile, t)
 
                 # Update state
-                state_history.append(current_state)
-                current_state = deepcopy(current_state)
-                current_state.position = game.agent_position
+                old_state = current_state
+                state_history.append(old_state)
+                current_state = State(game.agent_position)
+                current_state.foods_eaten += old_state.foods_eaten
 
                 if reward == FOOD_STEP:
                     current_state.foods_eaten = tuple(sorted(current_state.foods_eaten + (tile,)))
 
                 # Update Q
-                self.update_q(state_history[-1], current_state, action, reward)
+                self.update_q(old_state, current_state, action, reward)
 
-                # Backup x-steps
-                # for j in range(-1, -min(3, len(action_history)), -1):
-                #     self.update_q(state_history[j-1], state_history[j], action_history[j-1], reward)
+                if self.x:
+                    # Backup x-steps
+                    for j in range(-1, -min(self.x, len(action_history)), -1):
+                        self.update_q(state_history[j-1], state_history[j], action_history[j-1], reward)
 
-                # if game.done:
-                #     # Backup trace decay
-                #     decay_rate = 1.0
-                #     action_len = len(action_history)
-                #     for j in range(1, action_len-1):
-                #         self.update_q(state_history[-(j+1)], state_history[-j], action_history[-(j+1)], decay_rate * reward)
-                #         decay_rate -= 1 / action_len
+                if self.decay_rate:
+                    # Backup trace decay
+                    trace = 1.0
+                    action_len = len(action_history)
+                    for j in range(1, action_len-1):
+                        self.update_q(state_history[-(j+1)], state_history[-j], action_history[-(j+1)], trace * reward)
+                        trace -= self.decay_rate
 
                 t += 1
             self.ts.append(t)

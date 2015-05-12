@@ -29,13 +29,14 @@ if __name__ == "__main__":
     flatland = parse_flatland_scenario(filename)
 
     flq = FlatlandQLearn(
-        k=4000,
+        k=1000,
         scenario=flatland,
         learning_rate=0.5,
         discount_rate=0.8,
-        temp=1
+        temp=1,
+        # x=3
     )
 
     actions, states = flq.learn()
-    FlatlandGUI(flatland, actions, states, flq.q)
-    flq.plot_steps()
+    #FlatlandGUI(flatland, actions, states, flq.q)
+    #flq.plot_steps()
