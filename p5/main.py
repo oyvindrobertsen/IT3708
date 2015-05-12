@@ -23,20 +23,22 @@ def parse_flatland_scenario(filename):
         return Flatland((w, h), x, y, n, grid)
 
 if __name__ == "__main__":
-    filename = SCENARIOS[2]
+    filename = SCENARIOS[3]
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     flatland = parse_flatland_scenario(filename)
 
     flq = FlatlandQLearn(
-        k=1000,
+        k=12000,
         scenario=flatland,
         learning_rate=0.5,
         discount_rate=0.8,
         temp=1,
-        # x=3
+        max_steps=(flatland.w * flatland.h * 2),
+        x=4
     )
 
-    actions, states = flq.learn()
-    #FlatlandGUI(flatland, actions, states, flq.q)
-    #flq.plot_steps()
+    flq.learn()
+    actions, states = flq.optimal_run()
+    FlatlandGUI(flatland, actions, states, flq.q)
+    flq.plot_steps()

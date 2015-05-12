@@ -14,11 +14,11 @@ FOOD_STEP = 50
 FINISH_STEP = FOOD_STEP
 
 
-def calculate_reward(current, tile, steps):
+def calculate_reward(current, tile, steps, max_steps):
     """
     Given a flatland instance and a tile content returns the score associated with moving onto the tile
     """
-    reward = NONE_STEP * (1.0 + (steps / (current.w * current.h)))  # if steps > ((current.w * current.h) / 2) else NONE_STEP
+    reward = NONE_STEP * (1.0 + (steps / max_steps))
 
     if current.done:
         reward = FINISH_STEP
@@ -103,7 +103,7 @@ class State(object):
 
 
 class FlatlandQLearn(object):
-    def __init__(self, k, scenario, learning_rate, discount_rate, temp, x=0, decay_rate=0):
+    def __init__(self, k, scenario, learning_rate, discount_rate, temp, x=0, decay_rate=0, max_steps=500):
         self.k = k
         self.scenario = scenario
         self.learning_rate = learning_rate
@@ -113,6 +113,7 @@ class FlatlandQLearn(object):
         self.q = {}  # Q :: State, action -> value
         self.decay_rate = decay_rate
         self.x = x
+        self.max_steps = max_steps
 
     def update_q(self, start_state, end_state, action, reward):
 
@@ -125,7 +126,7 @@ class FlatlandQLearn(object):
         old_value = start_values[action] if action in start_values.keys() else 0
 
         new_value = old_value + self.learning_rate * \
-                                (reward + (self.discount_rate * best_end_value) - old_value)
+            (reward + (self.discount_rate * best_end_value) - old_value)
         start_values[action] = new_value
         self.q[start_state] = start_values
 
@@ -151,17 +152,15 @@ class FlatlandQLearn(object):
             while not game.done and not t > max_steps:
                 # Select action to perform
                 action = self.choose_action(current_state)
-                action_history.append(action)
 
                 # Have the agent perform the action
                 tile = game.perform_action(action)
 
                 # Calculate reward based on the result of the action
-                reward = calculate_reward(game, tile, t)
+                reward = calculate_reward(game, tile, t, self.max_steps)
 
                 # Update state
                 old_state = current_state
-                state_history.append(old_state)
                 current_state = State(game.agent_position)
                 current_state.foods_eaten += old_state.foods_eaten
 
@@ -171,22 +170,54 @@ class FlatlandQLearn(object):
                 # Update Q
                 self.update_q(old_state, current_state, action, reward)
 
-                if self.x:
+                if self.x and self.x < len(state_history):
                     # Backup x-steps
-                    for j in range(-1, -min(self.x, len(action_history)), -1):
-                        self.update_q(state_history[j-1], state_history[j], action_history[j-1], reward)
+                    for j in range(-1, - self.x, -1):
+                        self.update_q(state_history[j-1], state_history[j], action_history[j], reward)
 
                 if self.decay_rate:
                     # Backup trace decay
                     trace = 1.0
                     action_len = len(action_history)
                     for j in range(1, action_len-1):
-                        self.update_q(state_history[-(j+1)], state_history[-j], action_history[-(j+1)], trace * reward)
+                        self.update_q(state_history[-(j+1)], state_history[-j], action_history[-j], trace * reward)
                         trace -= self.decay_rate
 
+                action_history.append(action)
+                state_history.append(old_state)
                 t += 1
             self.ts.append(t)
             self.temp = max(self.temp - 1/self.k, 0)
+
+    def optimal_run(self):
+        self.temp = 0
+        t = 0
+        game = deepcopy(self.scenario)
+        current_state = State(game.agent_position)
+        action_history = []
+        state_history = []
+        while not game.done and not t > self.max_steps:
+            # Select action to perform
+            action = self.choose_action(current_state)
+            action_history.append(action)
+
+            # Have the agent perform the action
+            tile = game.perform_action(action)
+
+            # Calculate reward based on the result of the action
+            reward = calculate_reward(game, tile, t, self.max_steps)
+
+            # Update state
+            old_state = current_state
+            state_history.append(old_state)
+            current_state = State(game.agent_position)
+            current_state.foods_eaten += old_state.foods_eaten
+
+            if reward == FOOD_STEP:
+                current_state.foods_eaten = tuple(sorted(current_state.foods_eaten + (tile,)))
+
+            t += 1
+        self.ts.append(t)
 
         print('Food eaten: {}'.format(game.food_eaten))
         print('Poison eaten: {}'.format(game.poison_eaten))

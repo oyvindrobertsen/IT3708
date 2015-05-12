@@ -147,7 +147,7 @@
     Looking up a state returns a new dictionary mapping actions to values.
     Querying for $max_{a}Q(s, a)$ then consists simply of \texttt{max(q.get(s).values())}.
 
-    On large Flatland-scenarios, the lookup-approach is not very memory efficient.
+    On large Flatland-scenarios, the lookup-table approach is not very memory efficient.
     A possible solution to this would be to replace the table with an approximated function.
     That is outside of the scope of this project however.
 
@@ -156,14 +156,17 @@
     Q-Learning allows for some tuning of parameters. Their values and some reasoning is provided below.
 
     \textit{Number of iterations} - How many times the learning agent is to run the scenario. 
-    For the smaller boards 1000 iterations is enough. On larger boards however, as many as 30000 iterations may be needed for the algorithm to converge on an optimal action, value-function.
+    For the smaller boards 1000 iterations is enough. On larger boards however, as many as 20000 iterations may be needed for the algorithm to converge on an optimal action, value-function.
 
     \textit{Learning rate} - Determines to what extent new information will override the old.
-    Since the environment is changing, we want to preserve old knowledge to some degree.
-    If, for instance, the agent eats a piece of food by moving from $A$ to $B$, we want to preserve the knowledge of that move yielding positive results in that state.
-    Using a high learning rate could be potentially harmfull in this situation.
-    Should the agent move back to $A$ and then move into $B$ again, the knowledge it has will be completely or partially overwritten.
-    For most of my simulations, I've used a learning rate of $0.5$.
+    In an unchanging environment, a learning rate of $1$ is optimal.
+    In Flatland however, the environment is changing.
+    To understand why a learning rate of $1$ is problematic for us, we consider the case of moving from A to B, eating poison in B, moving back to A and then moving back into B.
+    The second time we move from A to B, the knowledge the agent had of A $\rightarrow$ B being a bad move because of poison, will be overwritten completely.
+    Using $1$ as learning rate also leads to problems when we involve backup schemes.
+    An example using TD(X) with $X > 1$ would be moving from A to B, eating poison in B, moving further on to C, eating food there.
+    In this case, the negative value associated with moving from A to B and eating poison would be completely overwritten if a learning rate of $1$ was used.
+    In most of my simulations I used a learning rate of $0.5$.
 
     \textit{Discount rate} - Determines the importance of future reward.
     A low value will make the agent consider the reward/punishment it was given for getting to a state, while largely ignoring the potential of the state.
@@ -176,14 +179,21 @@
 
     At each timestep, the agent has to choose an action to perform and subsequently be rewarded / punished for.
     The \texttt{FlatlandQLearn}-agent chooses actions randomly at first, transitioning into to exploiting it's knowledge in later iterations.
-    A random action is chosen with probability $p$, and the best one with probability $1 - p$
+    A random action is chosen with probability $p$, and the best one with probability $1 - p$, with $p$ decreasing throughout iterations.
     This approach is similar to Simulated Annealing or Boltzmann selection for parent selection in EAs.
     
     Having the agent explore by mostly performing random actions at first allows it to gather knowledge of a great variety of scenarios before exploiting that knowledge at a later stage.
 
     \section{Backup scheme}
 
+    I chose to implement support for both backup schemes; TD(X) as well as TD($\lambda$).
+    On the large boards, using TD(X) can increase the speed at which knowledge propagates throughout the knowledgebase.
+    The efficiency of this strategy is highly dependent on the value of $X$.
+    Low values will have a less noticeable effect on knowledge propagation, while high values will reinforce actions that don't necessarily deserve reinforcing.
     
+    When experimenting with TD($\lambda$), I noticed that it at best gave the same results as TD(X), but drastically increases run time.
+    I also experimented with applying TD($\lambda$) only when certain conditions where met, such as when the agent returns to it's starting position after having eaten all food.
+    These experiments yielded no significant results.
     
 
 
